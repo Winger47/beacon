@@ -116,6 +116,41 @@ def test_api_token_create_and_use(client: TestClient) -> None:
     assert resp.status_code == 200
 
 
+def test_non_admin_gets_404_for_inaccessible_product(client: TestClient) -> None:
+    from kata_core_api.deps import get_principal
+    from kata_domain.repositories import Principal
+
+    pt = client.post("/api/v1/product-types", json={"name": "x-pt"}).json()
+    product = client.post(
+        "/api/v1/products", json={"product_type_id": pt["id"], "name": "x-product"}
+    ).json()
+
+    # Switch to a principal with no access to anything.
+    client.app.dependency_overrides[get_principal] = lambda: Principal(
+        user_id=999999, global_role=None
+    )
+    resp = client.get(f"/api/v1/products/{product['id']}")
+    assert resp.status_code == 404  # not 403 — no existence leak (ADR-0008)
+    assert resp.headers["content-type"].startswith("application/problem+json")
+
+
+def test_api_token_revoke(client: TestClient) -> None:
+    created = client.post("/api/v1/api-tokens", json={"name": "ci"}).json()
+    secret = created["secret"]
+    token_id = created["token"]["id"]
+
+    assert any(t["id"] == token_id for t in client.get("/api/v1/api-tokens").json())
+
+    assert client.delete(f"/api/v1/api-tokens/{token_id}").status_code == 204
+
+    # Revoked token no longer authenticates.
+    resp = client.get(
+        "/api/v1/products",
+        headers={"X-Kata-Dev-User": "", "Authorization": f"Bearer {secret}"},
+    )
+    assert resp.status_code == 401
+
+
 def test_openapi_published(client: TestClient) -> None:
     schema = client.get("/openapi.json").json()
     assert "/api/v1/findings" in schema["paths"]

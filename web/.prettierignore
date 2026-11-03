@@ -1,0 +1,5 @@
+dist
+node_modules
+# Generated from the OpenAPI spec (must match `npm run gen:api` output verbatim).
+src/api/schema.ts
+openapi.json

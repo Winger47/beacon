@@ -1,0 +1,64 @@
+{
+  "realm": "kata",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "roles": {
+    "realm": [
+      { "name": "kata-owner", "description": "Kata global owner" },
+      { "name": "kata-maintainer", "description": "Kata global maintainer" },
+      { "name": "kata-reader", "description": "Kata global reader" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "kata-web",
+      "name": "Kata Web (SPA)",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:5173/*"],
+      "webOrigins": ["http://localhost:5173"],
+      "attributes": { "pkce.code.challenge.method": "S256" },
+      "protocolMappers": [
+        {
+          "name": "audience-core-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "kata-core-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "kata-core-api",
+      "name": "Kata core-api (resource server)",
+      "enabled": true,
+      "bearerOnly": true
+    }
+  ],
+  "users": [
+    {
+      "username": "admin-user",
+      "enabled": true,
+      "email": "admin@kata.local",
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "User",
+      "credentials": [{ "type": "password", "value": "admin", "temporary": false }],
+      "realmRoles": ["kata-owner"]
+    },
+    {
+      "username": "reader-user",
+      "enabled": true,
+      "email": "reader@kata.local",
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "reader", "temporary": false }],
+      "realmRoles": ["kata-reader"]
+    }
+  ]
+}

@@ -224,3 +224,24 @@ def create_api_token(
     return schemas.ApiTokenCreatedOut(
         token=schemas.ApiTokenOut.model_validate(token), secret=secret
     )
+
+
+@router.get("/api-tokens", response_model=list[schemas.ApiTokenOut])
+def list_api_tokens(
+    principal: Principal = Depends(get_principal),
+    session: Session = Depends(get_session),
+) -> object:
+    return list(repo.list_api_tokens(session, principal.user_id))
+
+
+@router.delete("/api-tokens/{token_id}", status_code=204)
+def revoke_api_token(
+    token_id: int,
+    principal: Principal = Depends(get_principal),
+    session: Session = Depends(get_session),
+) -> None:
+    if not repo.revoke_api_token(session, user_id=principal.user_id, token_id=token_id):
+        raise ProblemError(
+            status=404, title="Not Found", detail="Token not found.",
+            type_="https://kata.dev/problems/not-found",
+        )

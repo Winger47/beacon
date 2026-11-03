@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import datetime
 from collections.abc import Sequence
 from dataclasses import dataclass
 
@@ -19,6 +20,7 @@ from sqlalchemy.sql import ColumnElement
 
 from .enums import FindingStatus, Role, Severity
 from .models import (
+    ApiToken,
     Engagement,
     Finding,
     Product,
@@ -230,6 +232,24 @@ def get_finding_authorized(
         return finding
     role = effective_role(session, principal, finding.product_id)
     return finding if role is not None else None
+
+
+def list_api_tokens(session: Session, user_id: int) -> Sequence[ApiToken]:
+    return list(
+        session.scalars(
+            select(ApiToken).where(ApiToken.user_id == user_id).order_by(ApiToken.id)
+        ).all()
+    )
+
+
+def revoke_api_token(session: Session, *, user_id: int, token_id: int) -> bool:
+    """Revoke a token owned by the user. Returns False if not found / not theirs."""
+    token = session.get(ApiToken, token_id)
+    if token is None or token.user_id != user_id:
+        return False
+    if token.revoked_at is None:
+        token.revoked_at = datetime.datetime.now(tz=datetime.UTC)
+    return True
 
 
 def list_products(session: Session, principal: Principal) -> Sequence[Product]:

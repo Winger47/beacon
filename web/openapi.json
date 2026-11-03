@@ -454,6 +454,26 @@
       }
     },
     "/api/v1/api-tokens": {
+      "get": {
+        "summary": "List Api Tokens",
+        "operationId": "list_api_tokens_api_v1_api_tokens_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ApiTokenOut"
+                  },
+                  "type": "array",
+                  "title": "Response List Api Tokens Api V1 Api Tokens Get"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "summary": "Create Api Token",
         "operationId": "create_api_token_api_v1_api_tokens_post",
@@ -477,6 +497,38 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/api-tokens/{token_id}": {
+      "delete": {
+        "summary": "Revoke Api Token",
+        "operationId": "revoke_api_token_api_v1_api_tokens__token_id__delete",
+        "parameters": [
+          {
+            "name": "token_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Token Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
           },
           "422": {
             "description": "Validation Error",

@@ -49,5 +49,3 @@ gen/
 /fixtures-large/
 *.scan.json.large
 
-# Generated OpenAPI TS types
-web/src/api/schema.ts

@@ -47,14 +47,15 @@ services:
     image: quay.io/keycloak/keycloak:26.0
     <<: *restart
     profiles: ["core", "full"]
-    command: ["start-dev", "--http-port=8080"]
+    command: ["start-dev", "--http-port=8080", "--import-realm"]
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       KC_HEALTH_ENABLED: "true"
     ports:
       - "${KEYCLOAK_PORT:-8080}:8080"
-    # Phase 1 commits a realm export and mounts it at /opt/keycloak/data/import.
+    volumes:
+      - ./config/keycloak/kata-realm.json:/opt/keycloak/data/import/kata-realm.json:ro
 
   edge:
     image: caddy:2

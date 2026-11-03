@@ -1586,21 +1586,21 @@ Format for each phase: **Tasks** (checkboxes), **Deliverables**, **ADRs to write
 - [ ] Seed script: generate 1M synthetic findings across 50 products (use `COPY`, not ORM inserts).
 
 **Week 2: Auth and RBAC**
-- [ ] Keycloak realm export committed to the repo (users, clients) for reproducible setup.
-- [ ] OIDC JWT validation middleware in FastAPI with cached JWKS.
-- [ ] Roles and memberships (global, product type, product); `user_product_access` maintenance.
-- [ ] One `authorized_findings_query(user)` builder used by every finding query.
-- [ ] Scoped API tokens: create (show once), hash at rest, scopes, expiry, revoke.
-- [ ] Tests: cross-tenant access attempts on every list and detail endpoint return 404 (not 403: don't leak existence; write an ADR on that choice).
+- [x] Keycloak realm export committed to the repo (users, clients) for reproducible setup. (`deploy/compose/config/keycloak/kata-realm.json`, imported via `--import-realm`; realm `kata`, clients `kata-web`/`kata-core-api`, PKCE + audience mapper.)
+- [x] OIDC JWT validation middleware in FastAPI with cached JWKS. (`auth.verify_jwt` via PyJWT `PyJWKClient`.)
+- [x] Roles and memberships (global, product type, product); `user_product_access` maintenance. (migration 0002; `recompute_user_product_access` set-based.)
+- [x] One `authorized_findings_query(user)` builder used by every finding query. (`repositories.list_findings` + `effective_role`/`get_finding_authorized`.)
+- [~] Scoped API tokens: create (show once), hash at rest, scopes, expiry, revoke. (Create/hash/scopes/expiry done; **list/revoke endpoints still to add**.)
+- [~] Tests: cross-tenant access attempts return 404 (not 403). (Data-layer isolation tested; 404-vs-403 enforced in routes + ADR-0008; **per-endpoint 404 API tests for a non-admin principal still to add**.)
 
 **Week 3: API and UI shell**
-- [ ] CRUD endpoints for the hierarchy; findings list with filters + keyset pagination; OpenAPI published.
-- [ ] RFC 9457 error handler.
-- [ ] React shell: login (OIDC PKCE), layout, product list, product detail, findings table (virtualized, server-side filtering).
-- [ ] Generate TS types from OpenAPI in CI.
-- [ ] Benchmark: findings list p95 at 1M rows with `EXPLAIN ANALYZE` captured in `docs/benchmarks/phase1.md`.
+- [x] CRUD endpoints for the hierarchy; findings list with filters + keyset pagination; OpenAPI published.
+- [x] RFC 9457 error handler.
+- [~] React shell: login, layout, product list, findings table. (TanStack Query + router + typed client; products→findings works against the live API. **Dev-header login for now (OIDC PKCE wiring pending); table not yet virtualized**.)
+- [x] Generate TS types from OpenAPI in CI. (`make openapi` → `npm run gen:api`; CI fails on spec/type drift.)
+- [x] Benchmark: findings list p95 at 1M rows with `EXPLAIN ANALYZE` captured in `docs/benchmarks/phase1.md`. (p95 = 1.6 ms.)
 
-**ADRs:** status enum vs booleans; 404 vs 403 for unauthorized resources; keyset pagination; FastAPI vs Django.
+**ADRs:** status enum vs booleans (0002); 404 vs 403 (0008); keyset pagination (0006); FastAPI vs Django (0007). Also: engagement immutability (0003), audit strategy (0004), RBAC model (0005).
 
 **Think first**
 - You denormalized `product_id` onto `finding`. What happens when someone moves an engagement to another product? Is that operation allowed?
