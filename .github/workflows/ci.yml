@@ -58,6 +58,20 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.python == 'true' }}
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: kata
+          POSTGRES_PASSWORD: kata
+          POSTGRES_DB: kata
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U kata -d kata"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      KATA_DATABASE_URL: postgresql+psycopg://kata:kata@localhost:5432/kata
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
@@ -68,6 +82,8 @@ jobs:
         run: uv run ruff check .
       - name: mypy
         run: uv run mypy packages/kata-domain/src packages/kata-parsers/src services/core-api/src
+      - name: migrate
+        run: make migrate
       - name: pytest
         run: uv run pytest
 

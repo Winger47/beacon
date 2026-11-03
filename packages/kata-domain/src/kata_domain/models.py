@@ -182,6 +182,9 @@ class Component(Base):
 
 class Test(Base):
     __tablename__ = "test"
+    __test__ = False  # not a pytest test class, despite the name
+
+
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     engagement_id: Mapped[int] = mapped_column(
@@ -352,4 +355,103 @@ class AuditLog(Base):
             "actor_type IN ('user','system','import')", name="actor_type_valid"
         ),
         {"postgresql_partition_by": "RANGE (occurred_at)"},
+    )
+
+
+# ---------------------------------------------------------------------------
+# RBAC (project.md 2.8). Role columns are text + CHECK (not a PG enum) so the role
+# set can evolve without an enum migration (ADR-0005).
+# ---------------------------------------------------------------------------
+_ROLE_CHECK = "IN ('reader','api_importer','writer','maintainer','owner')"
+
+
+class AppUser(Base):
+    __tablename__ = "app_user"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    subject: Mapped[str] = mapped_column(Text, nullable=False, unique=True)  # Keycloak sub
+    username: Mapped[str] = mapped_column(Text, nullable=False)
+    email: Mapped[str | None] = mapped_column(Text)
+    global_role: Mapped[str | None] = mapped_column(Text)
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
+    )
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+    __table_args__ = (
+        CheckConstraint(f"global_role {_ROLE_CHECK}", name="global_role_valid"),
+    )
+
+
+class ProductTypeMember(Base):
+    __tablename__ = "product_type_member"
+
+    product_type_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("product_type.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("app_user.id", ondelete="CASCADE"), primary_key=True
+    )
+    role: Mapped[str] = mapped_column(Text, nullable=False)
+
+    __table_args__ = (CheckConstraint(f"role {_ROLE_CHECK}", name="role_valid"),)
+
+
+class ProductMember(Base):
+    __tablename__ = "product_member"
+
+    product_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("product.id", ondelete="CASCADE"), primary_key=True
+    )
+    user_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("app_user.id", ondelete="CASCADE"), primary_key=True
+    )
+    role: Mapped[str] = mapped_column(Text, nullable=False)
+
+    __table_args__ = (CheckConstraint(f"role {_ROLE_CHECK}", name="role_valid"),)
+
+
+class UserProductAccess(Base):
+    """Effective per-user, per-product access. Maintained from product_member and
+    product_type_member (and global roles). The single table every finding query joins
+    against for RBAC (project.md 2.8)."""
+
+    __tablename__ = "user_product_access"
+
+    user_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("app_user.id", ondelete="CASCADE"), primary_key=True
+    )
+    product_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("product.id", ondelete="CASCADE"), primary_key=True
+    )
+    role: Mapped[str] = mapped_column(Text, nullable=False)
+
+    __table_args__ = (CheckConstraint(f"role {_ROLE_CHECK}", name="role_valid"),)
+
+
+class ApiToken(Base):
+    """Scoped CI tokens: random 32-byte secret, stored only as a SHA-256 hex hash,
+    scoped to products and actions, with expiry (project.md 3.10)."""
+
+    __tablename__ = "api_token"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("app_user.id", ondelete="CASCADE"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(Text, nullable=False)
+    token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    scope_product_ids: Mapped[list[int]] = mapped_column(
+        ARRAY(BigInteger), nullable=False, server_default=text("'{}'")
+    )
+    scope_actions: Mapped[list[str]] = mapped_column(
+        ARRAY(Text), nullable=False, server_default=text("'{}'")
+    )
+    expires_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True))
+    last_used_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
     )

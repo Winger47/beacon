@@ -82,8 +82,11 @@ migrate: ## Apply core-api DB migrations (alembic upgrade head)
 migrate-down: ## Roll back the last migration (alembic downgrade -1)
 	cd services/core-api && PYTHONPATH="$(PYSRC)" uv run --project "$(CURDIR)" alembic downgrade -1
 
-seed: ## Seed synthetic data (Phase 1, next task)
-	@echo "[phase 1] seed script not implemented yet (1M synthetic findings via COPY)"
+FINDINGS ?= 1000000
+PRODUCTS ?= 50
+seed: ## Seed synthetic data (FINDINGS=1000000 PRODUCTS=50 via COPY)
+	cd services/core-api && PYTHONPATH="$(PYSRC)" uv run --project "$(CURDIR)" \
+		python -m kata_core_api.seed --products $(PRODUCTS) --findings $(FINDINGS)
 
 clean: ## Remove caches and local build artifacts
 	find . -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
