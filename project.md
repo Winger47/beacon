@@ -1580,9 +1580,9 @@ Format for each phase: **Tasks** (checkboxes), **Deliverables**, **ADRs to write
 ### Phase 1: Core domain and API (3 weeks)
 
 **Week 1: Schema and domain**
-- [ ] Alembic migrations for `core` schema: product_type, product, engagement, test, scanner_config, component, finding (status enum), sla_configuration, test_import, audit_log (with monthly partition creation job).
-- [ ] SQLAlchemy 2.x models + repository layer (`kata-domain` package). No business logic in route handlers.
-- [ ] `transition()` service for finding status (Part III 3.8), with unit tests for every allowed and forbidden edge.
+- [x] Alembic migrations for `core` schema: product_type, product, engagement, test, scanner_config, component, finding (status enum), sla_configuration, test_import, audit_log. (Applied + reversible against local PG; audit_log partitioned with DEFAULT + current-month partitions. Monthly partition-creation *job* deferred to the Phase 6 scheduler; DEFAULT partition keeps inserts safe meanwhile.)
+- [~] SQLAlchemy 2.x models + repository layer (`kata-domain` package). (Models done for the Week-1 table set; **repository layer still to build**.)
+- [x] `transition()` service for finding status (Part III 3.8), with unit tests for every allowed and forbidden edge. (78 tests; DB-free via a structural session protocol.)
 - [ ] Seed script: generate 1M synthetic findings across 50 products (use `COPY`, not ORM inserts).
 
 **Week 2: Auth and RBAC**

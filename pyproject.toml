@@ -18,14 +18,16 @@ dev = [
     # Workspace members, installed editable so `uv run pytest` can import them.
     "kata-domain",
     "kata-parsers",
+    "kata-core-api",
 ]
 
 [tool.uv.workspace]
-members = ["packages/kata-domain", "packages/kata-parsers"]
+members = ["packages/kata-domain", "packages/kata-parsers", "services/core-api"]
 
 [tool.uv.sources]
 kata-domain = { workspace = true }
 kata-parsers = { workspace = true }
+kata-core-api = { workspace = true }
 
 # ---------------------------------------------------------------------------
 # ruff: lint + format, shared across the whole workspace
@@ -48,7 +50,7 @@ select = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["kata_domain", "kata_parsers"]
+known-first-party = ["kata_domain", "kata_parsers", "kata_core_api"]
 
 # ---------------------------------------------------------------------------
 # mypy: strict everywhere
@@ -61,14 +63,22 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 show_error_codes = true
 pretty = true
-mypy_path = ["packages/kata-domain/src", "packages/kata-parsers/src"]
+mypy_path = ["packages/kata-domain/src", "packages/kata-parsers/src", "services/core-api/src"]
 
 # ---------------------------------------------------------------------------
 # pytest
 # ---------------------------------------------------------------------------
 [tool.pytest.ini_options]
 addopts = "-ra -q --import-mode=importlib"
-testpaths = ["packages/kata-domain/tests", "packages/kata-parsers/tests"]
+testpaths = [
+    "packages/kata-domain/tests",
+    "packages/kata-parsers/tests",
+    "services/core-api/tests",
+]
 # src-layout packages: put their src dirs on sys.path for tests, independent of
 # editable-install mechanics. Services get proper installs later.
-pythonpath = ["packages/kata-domain/src", "packages/kata-parsers/src"]
+pythonpath = [
+    "packages/kata-domain/src",
+    "packages/kata-parsers/src",
+    "services/core-api/src",
+]

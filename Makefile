@@ -9,7 +9,7 @@ HAVE_GO  := $(shell command -v go 2>/dev/null)
 HAVE_BUF := $(shell command -v buf 2>/dev/null)
 HAVE_LINT := $(shell command -v golangci-lint 2>/dev/null)
 
-.PHONY: help up down logs ps test lint migrate seed proto \
+.PHONY: help up down logs ps test lint migrate migrate-down seed proto \
         test-py test-go test-web lint-py lint-go lint-web clean
 
 help: ## Show this help
@@ -52,7 +52,7 @@ lint: lint-py lint-go lint-web ## Lint across all languages
 
 lint-py: ## Python lint + types
 	uv run ruff check .
-	uv run mypy packages/kata-domain/src packages/kata-parsers/src
+	uv run mypy packages/kata-domain/src packages/kata-parsers/src services/core-api/src
 
 lint-go: ## Go lint (skipped if golangci-lint is not installed)
 ifeq ($(HAVE_LINT),)
@@ -72,11 +72,17 @@ else
 	buf lint
 endif
 
-# -------------------------------------------------------------- db (stubs)
-migrate: ## Apply DB migrations (Phase 1)
-	@echo "[phase 1] migrations not implemented yet (Alembic lands with the core schema)"
+# ---------------------------------------------------------------------- db
+# src-layout packages need to be importable by Alembic; set PYTHONPATH explicitly.
+PYSRC := $(CURDIR)/packages/kata-domain/src:$(CURDIR)/packages/kata-parsers/src:$(CURDIR)/services/core-api/src
 
-seed: ## Seed synthetic data (Phase 1)
+migrate: ## Apply core-api DB migrations (alembic upgrade head)
+	cd services/core-api && PYTHONPATH="$(PYSRC)" uv run --project "$(CURDIR)" alembic upgrade head
+
+migrate-down: ## Roll back the last migration (alembic downgrade -1)
+	cd services/core-api && PYTHONPATH="$(PYSRC)" uv run --project "$(CURDIR)" alembic downgrade -1
+
+seed: ## Seed synthetic data (Phase 1, next task)
 	@echo "[phase 1] seed script not implemented yet (1M synthetic findings via COPY)"
 
 clean: ## Remove caches and local build artifacts

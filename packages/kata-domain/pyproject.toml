@@ -3,7 +3,10 @@ name = "kata-domain"
 version = "0.0.0"
 description = "Kata domain model, repositories, transition(), dedup and reimport logic."
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "sqlalchemy>=2.0.30",
+    "pydantic>=2.7",
+]
 
 [build-system]
 requires = ["hatchling"]

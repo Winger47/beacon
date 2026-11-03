@@ -67,7 +67,7 @@ jobs:
       - name: ruff
         run: uv run ruff check .
       - name: mypy
-        run: uv run mypy packages/kata-domain/src packages/kata-parsers/src
+        run: uv run mypy packages/kata-domain/src packages/kata-parsers/src services/core-api/src
       - name: pytest
         run: uv run pytest
 
