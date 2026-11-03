@@ -1,0 +1,10 @@
+# Codegen for the canonical finding contract (Go + Python).
+# Wired now; actually run in Phase 4 when the real contract lands (`make proto`).
+# Generated code is NOT committed (see .gitignore).
+version: v2
+plugins:
+  - remote: buf.build/protocolbuffers/go
+    out: gen/go
+    opt: paths=source_relative
+  - remote: buf.build/protocolbuffers/python
+    out: gen/python

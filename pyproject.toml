@@ -1,0 +1,74 @@
+# Kata Python workspace root.
+# This is NOT an installable package; it holds the uv workspace definition and the
+# shared tooling config (ruff, mypy --strict, pytest) inherited by all members.
+[project]
+name = "kata-workspace"
+version = "0.0.0"
+description = "Kata monorepo Python workspace root (tooling + workspace config only)."
+requires-python = ">=3.12"
+
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = [
+    "ruff>=0.6.0",
+    "mypy>=1.11.0",
+    "pytest>=8.3.0",
+    # Workspace members, installed editable so `uv run pytest` can import them.
+    "kata-domain",
+    "kata-parsers",
+]
+
+[tool.uv.workspace]
+members = ["packages/kata-domain", "packages/kata-parsers"]
+
+[tool.uv.sources]
+kata-domain = { workspace = true }
+kata-parsers = { workspace = true }
+
+# ---------------------------------------------------------------------------
+# ruff: lint + format, shared across the whole workspace
+# ---------------------------------------------------------------------------
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["packages/*/src", "services/*/src"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",   # pycodestyle + pyflakes
+    "I",             # isort
+    "UP",            # pyupgrade
+    "B",             # bugbear
+    "C4",            # comprehensions
+    "SIM",           # simplify
+    "TID",           # tidy imports
+    "RUF",           # ruff-specific
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["kata_domain", "kata_parsers"]
+
+# ---------------------------------------------------------------------------
+# mypy: strict everywhere
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unreachable = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+pretty = true
+mypy_path = ["packages/kata-domain/src", "packages/kata-parsers/src"]
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+addopts = "-ra -q --import-mode=importlib"
+testpaths = ["packages/kata-domain/tests", "packages/kata-parsers/tests"]
+# src-layout packages: put their src dirs on sys.path for tests, independent of
+# editable-install mechanics. Services get proper installs later.
+pythonpath = ["packages/kata-domain/src", "packages/kata-parsers/src"]

@@ -1,0 +1,32 @@
+# golangci-lint config for the Kata Go module.
+# Dev tool only (golangci-lint is GPL-3.0); it does not affect Kata's Apache-2.0 license.
+run:
+  timeout: 5m
+
+linters:
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gofmt
+    - goimports
+    - misspell
+    - revive
+    - bodyclose
+    - nilerr
+
+linters-settings:
+  goimports:
+    local-prefixes: github.com/kata/kata
+  revive:
+    rules:
+      - name: exported
+        disabled: false
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck

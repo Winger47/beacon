@@ -1,0 +1,50 @@
+# --- OS / editor ---
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# --- Not part of Kata (pre-existing reference folders in this dir) ---
+/awesome-claude-skills-master/
+/skills-main/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.uv/
+*.egg-info/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# --- Go ---
+*.exe
+*.test
+*.out
+/bin/
+vendor/
+
+# --- Node / web ---
+node_modules/
+web/dist/
+*.local
+.env
+.env.*
+!.env.example
+
+# --- Proto codegen (generated, not committed) ---
+gen/
+*_pb2.py
+*_pb2.pyi
+*_pb2_grpc.py
+*.pb.go
+
+# --- Large scan samples / fixtures kept out of git (see CLAUDE.md rule 7) ---
+/fixtures-large/
+*.scan.json.large

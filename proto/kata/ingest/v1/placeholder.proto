@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+// Phase 0 placeholder so `buf lint` / `buf breaking` run in CI from day one.
+//
+// The real contract for this package is the canonical NormalizedFinding / FindingBatch
+// model (defectdojo.md 3.3), the most important interface in the system. It is a
+// deliberate Phase 2+ ADR decision ("canonical finding model") and is intentionally
+// NOT defined here yet. Delete this file when that contract lands.
+package kata.ingest.v1;
+
+option go_package = "github.com/kata/kata/gen/go/kata/ingest/v1;ingestv1";
+
+// Placeholder message. Carries no design commitment.
+message Placeholder {
+  string note = 1;
+}

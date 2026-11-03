@@ -1,0 +1,13 @@
+# Kata edge proxy (Phase 0 stub).
+# There is nothing to route yet: core-api (/api/*) arrives in Phase 1 and
+# ingest-gateway (/ingest/*) in Phase 4. For now it serves a health page so the
+# 'core' profile has a working front door. Routing rules are added in those phases.
+:8000 {
+	handle /healthz {
+		respond "kata edge ok" 200
+	}
+
+	handle {
+		respond "Kata edge (Phase 0). Nothing to route yet." 200
+	}
+}

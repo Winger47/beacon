@@ -1,0 +1,13 @@
+[project]
+name = "kata-parsers"
+version = "0.0.0"
+description = "Kata parser SDK: streaming scanner parsers mapping raw reports to canonical findings."
+requires-python = ">=3.12"
+dependencies = []
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/kata_parsers"]
