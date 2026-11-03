@@ -205,6 +205,33 @@ def get_product(session: Session, product_id: int) -> Product | None:
     return session.get(Product, product_id)
 
 
+def effective_role(session: Session, principal: Principal, product_id: int) -> Role | None:
+    """The principal's effective role on a product: global role if read-all, else the
+    user_product_access role. None if no access."""
+    if principal.global_role is not None and principal.can_read_all_products:
+        return principal.global_role
+    row = session.execute(
+        select(UserProductAccess.role).where(
+            UserProductAccess.user_id == principal.user_id,
+            UserProductAccess.product_id == product_id,
+        )
+    ).scalar_one_or_none()
+    return Role(row) if row is not None else None
+
+
+def get_finding_authorized(
+    session: Session, principal: Principal, finding_id: int
+) -> Finding | None:
+    """Fetch a finding only if the principal may see it; else None (404, no existence leak)."""
+    finding = session.get(Finding, finding_id)
+    if finding is None:
+        return None
+    if principal.can_read_all_products:
+        return finding
+    role = effective_role(session, principal, finding.product_id)
+    return finding if role is not None else None
+
+
 def list_products(session: Session, principal: Principal) -> Sequence[Product]:
     stmt = select(Product).order_by(Product.id)
     if not principal.can_read_all_products:

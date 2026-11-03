@@ -48,3 +48,6 @@ gen/
 # --- Large scan samples / fixtures kept out of git (see CLAUDE.md rule 7) ---
 /fixtures-large/
 *.scan.json.large
+
+# Generated OpenAPI TS types
+web/src/api/schema.ts

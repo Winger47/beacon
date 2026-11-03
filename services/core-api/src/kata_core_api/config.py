@@ -16,6 +16,21 @@ class Settings(BaseSettings):
     )
     sql_echo: bool = Field(default=False, description="Echo SQL for debugging.")
 
+    # OIDC / Keycloak. JWKS is fetched and cached from the issuer.
+    oidc_jwks_url: str = Field(
+        default="http://localhost:8080/realms/kata/protocol/openid-connect/certs"
+    )
+    oidc_issuer: str = Field(default="http://localhost:8080/realms/kata")
+    oidc_audience: str = Field(default="kata-core-api")
+
+    # CORS origins for the SPA dev server (comma-separated via env KATA_CORS_ORIGINS).
+    cors_origins: list[str] = Field(default=["http://localhost:5173"])
+
+    # Dev auth: trust an X-Kata-Dev-User header (local only). NEVER enable in production.
+    dev_auth: bool = Field(default=False)
+    # Global role granted to dev-header users (local convenience so dev can exercise writes).
+    dev_auth_global_role: str | None = Field(default="owner")
+
 
 def get_settings() -> Settings:
     return Settings()

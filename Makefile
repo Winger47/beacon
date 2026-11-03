@@ -9,7 +9,7 @@ HAVE_GO  := $(shell command -v go 2>/dev/null)
 HAVE_BUF := $(shell command -v buf 2>/dev/null)
 HAVE_LINT := $(shell command -v golangci-lint 2>/dev/null)
 
-.PHONY: help up down logs ps test lint migrate migrate-down seed proto \
+.PHONY: help up down logs ps test lint migrate migrate-down seed proto api-run openapi \
         test-py test-go test-web lint-py lint-go lint-web clean
 
 help: ## Show this help
@@ -84,6 +84,15 @@ migrate-down: ## Roll back the last migration (alembic downgrade -1)
 
 FINDINGS ?= 1000000
 PRODUCTS ?= 50
+api-run: ## Run core-api locally with dev auth (http://localhost:8001)
+	cd services/core-api && PYTHONPATH="$(PYSRC)" KATA_DEV_AUTH=true \
+		uv run --project "$(CURDIR)" uvicorn kata_core_api.app:app --port 8001 --reload
+
+openapi: ## Dump the core-api OpenAPI schema to web/openapi.json
+	PYTHONPATH="$(PYSRC)" uv run --project "$(CURDIR)" python -c \
+		"import json; from kata_core_api.app import app; open('web/openapi.json','w').write(json.dumps(app.openapi(), indent=2))"
+	@echo "wrote web/openapi.json"
+
 seed: ## Seed synthetic data (FINDINGS=1000000 PRODUCTS=50 via COPY)
 	cd services/core-api && PYTHONPATH="$(PYSRC)" uv run --project "$(CURDIR)" \
 		python -m kata_core_api.seed --products $(PRODUCTS) --findings $(FINDINGS)

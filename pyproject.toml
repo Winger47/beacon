@@ -52,6 +52,10 @@ select = [
 [tool.ruff.lint.isort]
 known-first-party = ["kata_domain", "kata_parsers", "kata_core_api"]
 
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's dependency-injection idiom puts these calls in argument defaults.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Body"]
+
 # ---------------------------------------------------------------------------
 # mypy: strict everywhere
 # ---------------------------------------------------------------------------
