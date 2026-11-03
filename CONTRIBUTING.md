@@ -1,11 +1,11 @@
 # Contributing to Kata
 
 Kata is a solo learning project. These notes keep the working style consistent; the binding
-rules live in [`CLAUDE.md`](./CLAUDE.md) and the design in [`defectdojo.md`](./defectdojo.md).
+rules live in [`CLAUDE.md`](./CLAUDE.md) and the design in [`project.md`](./project.md).
 
 ## Working agreement (summary)
 
-- **Work one phase at a time**, in the order of `defectdojo.md` Part V. Do not start later-phase work.
+- **Work one phase at a time**, in the order of `project.md` Part V. Do not start later-phase work.
 - **Design before code.** Every non-trivial decision gets an ADR in `docs/adr/` (template:
   `docs/adr/0000-template.md`). Propose the ADR, get approval, then implement.
 - **Clone the design, not the code.** DefectDojo is a behavioral reference only; never copy its source.

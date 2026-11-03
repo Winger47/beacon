@@ -1566,7 +1566,7 @@ Format for each phase: **Tasks** (checkboxes), **Deliverables**, **ADRs to write
 - [x] `docker-compose.yml` with profiles: `core` (Postgres, Valkey, Keycloak), `ingest` (Kafka KRaft, SeaweedFS), `observability` (OTel Collector, Prometheus, Grafana, Loki, Tempo).
 - [x] Makefile / Taskfile targets: `up`, `down`, `test`, `lint`, `migrate`, `seed`.
 - [x] GitHub Actions: lint + unit tests for Python, Go, web; Buf lint; build images. (Note: no service Dockerfiles exist in Phase 0, so the "build images" job is a `docker compose config` validation for now; image builds are added as services gain Dockerfiles.)
-- [x] `docs/adr/0000-template.md`; write ADR-001 (architecture style) from Part II. (ADR-0001 status: **proposed**, pending sign-off to mark accepted.)
+- [x] `docs/adr/0000-template.md`; write ADR-001 (architecture style) from Part II. (ADR-0001 status: **accepted**.)
 - [ ] Install DefectDojo locally (separate compose project). Import one Trivy report. Explore every screen. Take notes on what you see. (Owner: you — per kickoff.md.)
 
 **Deliverables:** running local stack, green CI, ADR-001.

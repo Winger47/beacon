@@ -4,14 +4,13 @@ A from-scratch reimplementation of OWASP DefectDojo's core architecture, with a 
 streaming ingestion pipeline. Built for learning high-volume backend engineering: ingestion,
 normalization, deduplication, idempotency, and async pipelines.
 
-> The full design and phased plan is in [`defectdojo.md`](./defectdojo.md) (the project's
-> design document / "source of truth"; `CLAUDE.md` refers to it as `project.md`).
-> Read the relevant Part and Phase before starting any task.
+> The full design and phased plan is in [`project.md`](./project.md) (the project's
+> design document and source of truth). Read the relevant Part and Phase before starting any task.
 
 ## Status
 
 **Phase 0 — Foundations.** Repo, tooling, local stack, CI, and observability skeleton.
-No domain code yet. See the phase map in `defectdojo.md` Part V.
+No domain code yet. See the phase map in `project.md` Part V.
 
 ## Stack
 
