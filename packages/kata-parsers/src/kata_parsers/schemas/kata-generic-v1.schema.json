@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kata.dev/schemas/kata-generic-v1.schema.json",
+  "title": "Kata Generic Report v1",
+  "description": "Kata's own documented report format (project.md 4.1). Any tool without a native parser can emit this. The parser streams it; this schema is the contract, not a load-the-whole-file validator.",
+  "type": "object",
+  "required": ["findings"],
+  "properties": {
+    "schema": {
+      "description": "Format discriminator. Optional but recommended; must be this literal when present.",
+      "const": "kata-generic-v1"
+    },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "severity": {
+      "type": "string",
+      "description": "Case-insensitive; normalized per ADR-0010. Unknown tokens floor to info.",
+      "pattern": "^(?i:critical|high|medium|moderate|low|info|informational|unknown|negligible|none)$"
+    },
+    "location": {
+      "type": "object",
+      "description": "Typed location, discriminated by 'kind' (ADR-0009).",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["file", "image", "k8s", "cloud", "endpoint"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "finding": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "severity": { "$ref": "#/$defs/severity" },
+        "description": { "type": "string" },
+        "mitigation": { "type": "string" },
+        "references": { "type": "string" },
+        "vuln_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "cwe": { "type": ["integer", "null"] },
+        "cvss_v3_vector": { "type": "string" },
+        "cvss_v3_score": { "type": ["number", "null"], "minimum": 0, "maximum": 10 },
+        "unique_id_from_tool": { "type": "string" },
+        "vuln_id_from_tool": { "type": "string" },
+        "component": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "version": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "locations": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/location" }
+        },
+        "extra": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

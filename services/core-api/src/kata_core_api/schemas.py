@@ -61,6 +61,34 @@ class TestOut(ORMModel):
     title: str | None = None
 
 
+class TestImportOut(ORMModel):
+    id: int
+    test_id: int
+    import_job_id: str
+    kind: str
+    created_count: int
+    untouched_count: int
+    reactivated_count: int
+    closed_count: int
+    created_at: datetime.datetime
+
+
+class TestDetailOut(ORMModel):
+    id: int
+    engagement_id: int
+    scanner_key: str
+    title: str | None = None
+    imports: list[TestImportOut] = []
+
+
+class ImportResultOut(BaseModel):
+    """Result of a synchronous POST /import (Phase 2)."""
+
+    test_id: int
+    import_job_id: str
+    created_count: int
+
+
 # ---- findings ----
 class FindingOut(ORMModel):
     id: int

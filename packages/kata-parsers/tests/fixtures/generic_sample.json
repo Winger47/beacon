@@ -1,0 +1,27 @@
+{
+  "schema": "kata-generic-v1",
+  "findings": [
+    {
+      "title": "Hardcoded AWS secret key",
+      "severity": "Critical",
+      "description": "A long-lived AWS access key was committed to the repository.",
+      "mitigation": "Rotate the key and use a secrets manager.",
+      "references": "https://example.test/secrets",
+      "vuln_ids": ["CWE-798"],
+      "cwe": 798,
+      "unique_id_from_tool": "gitleaks:aws-access-key:app/config.py:12",
+      "vuln_id_from_tool": "aws-access-key",
+      "component": { "name": "app/config.py", "version": "" },
+      "locations": [{ "kind": "file", "path": "app/config.py", "line": 12 }],
+      "extra": { "rule": "aws-access-key" }
+    },
+    {
+      "title": "Outdated dependency requests 2.19.1",
+      "severity": "medium",
+      "description": "requests 2.19.1 has known vulnerabilities.",
+      "vuln_ids": ["CVE-2018-18074"],
+      "cvss_v3_score": 7.5,
+      "component": { "name": "requests", "version": "2.19.1" }
+    }
+  ]
+}

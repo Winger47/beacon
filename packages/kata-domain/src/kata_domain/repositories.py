@@ -21,6 +21,7 @@ from sqlalchemy.sql import ColumnElement
 from .enums import FindingStatus, Role, Severity
 from .models import (
     ApiToken,
+    Component,
     Engagement,
     Finding,
     Product,
@@ -28,6 +29,7 @@ from .models import (
     ProductType,
     ProductTypeMember,
     Test,
+    TestImport,
     UserProductAccess,
 )
 
@@ -89,6 +91,7 @@ def list_findings(
     principal: Principal,
     *,
     product_id: int | None = None,
+    test_id: int | None = None,
     status: FindingStatus | None = None,
     severity: Severity | None = None,
     limit: int = 100,
@@ -109,6 +112,8 @@ def list_findings(
         stmt = stmt.where(rbac)
     if product_id is not None:
         stmt = stmt.where(Finding.product_id == product_id)
+    if test_id is not None:
+        stmt = stmt.where(Finding.test_id == test_id)
     if status is not None:
         stmt = stmt.where(Finding.status == status)
     if severity is not None:
@@ -205,6 +210,74 @@ def create_test(
 
 def get_product(session: Session, product_id: int) -> Product | None:
     return session.get(Product, product_id)
+
+
+def get_test(session: Session, test_id: int) -> Test | None:
+    return session.get(Test, test_id)
+
+
+def list_tests(session: Session, *, engagement_id: int) -> list[Test]:
+    """Tests in an engagement, newest first (for the UI import history list)."""
+    return list(
+        session.scalars(
+            select(Test)
+            .where(Test.engagement_id == engagement_id)
+            .order_by(Test.id.desc())
+        ).all()
+    )
+
+
+def list_test_imports(session: Session, *, test_id: int) -> list[TestImport]:
+    """Import/reimport rows for a test, newest first (Test page timeline)."""
+    return list(
+        session.scalars(
+            select(TestImport)
+            .where(TestImport.test_id == test_id)
+            .order_by(TestImport.id.desc())
+        ).all()
+    )
+
+
+def get_or_create_component(session: Session, *, name: str, version: str) -> Component:
+    comp = session.scalar(
+        select(Component).where(Component.name == name, Component.version == version)
+    )
+    if comp is None:
+        comp = Component(name=name, version=version)
+        session.add(comp)
+        session.flush()
+    return comp
+
+
+def add_finding(session: Session, finding: Finding) -> Finding:
+    """Insert a pre-built finding (import path). Dedup/hashing is Phase 3; FSM is Phase 4."""
+    session.add(finding)
+    return finding
+
+
+def create_test_import(
+    session: Session,
+    *,
+    test_id: int,
+    import_job_id: str,
+    kind: str,
+    created_count: int = 0,
+    untouched_count: int = 0,
+    reactivated_count: int = 0,
+    closed_count: int = 0,
+) -> TestImport:
+    row = TestImport(
+        test_id=test_id,
+        import_job_id=import_job_id,
+        kind=kind,
+        created_count=created_count,
+        untouched_count=untouched_count,
+        reactivated_count=reactivated_count,
+        closed_count=closed_count,
+    )
+    session.add(row)
+    session.flush()
+    return row
 
 
 def effective_role(session: Session, principal: Principal, product_id: int) -> Role | None:

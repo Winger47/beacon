@@ -1,0 +1,56 @@
+{
+  "summaryDetails": {
+    "controls": {
+      "C-0016": { "name": "Allow privilege escalation", "scoreFactor": 7.0 },
+      "C-0017": { "name": "Immutable container filesystem", "scoreFactor": 5.0 },
+      "C-0034": { "name": "Automatic mapping of service account", "scoreFactor": 3.0 }
+    }
+  },
+  "results": [
+    {
+      "resourceID": "apps/v1/default/Deployment/nginx",
+      "controls": [
+        {
+          "controlID": "C-0016",
+          "name": "Allow privilege escalation",
+          "scoreFactor": 7.0,
+          "status": { "status": "failed" },
+          "rules": [{ "name": "rule-allow-privilege-escalation", "status": { "status": "failed" } }]
+        },
+        {
+          "controlID": "C-0017",
+          "name": "Immutable container filesystem",
+          "scoreFactor": 5.0,
+          "status": { "status": "failed" }
+        },
+        {
+          "controlID": "C-0034",
+          "name": "Automatic mapping of service account",
+          "scoreFactor": 3.0,
+          "status": { "status": "passed" }
+        }
+      ]
+    },
+    {
+      "resourceID": "apps/v1/kube-system/DaemonSet/kube-proxy",
+      "controls": [
+        {
+          "controlID": "C-0016",
+          "name": "Allow privilege escalation",
+          "scoreFactor": 7.0,
+          "status": { "status": "failed" }
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "resourceID": "apps/v1/default/Deployment/nginx",
+      "object": {
+        "apiVersion": "apps/v1",
+        "kind": "Deployment",
+        "metadata": { "name": "nginx", "namespace": "default" }
+      }
+    }
+  ]
+}

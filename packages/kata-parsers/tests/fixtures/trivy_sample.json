@@ -1,0 +1,64 @@
+{
+  "SchemaVersion": 2,
+  "ArtifactName": "alpine:3.19",
+  "Results": [
+    {
+      "Target": "alpine:3.19 (alpine 3.19.1)",
+      "Class": "os-pkgs",
+      "Type": "alpine",
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2024-0001",
+          "PkgName": "openssl",
+          "InstalledVersion": "3.1.4-r5",
+          "FixedVersion": "3.1.4-r6",
+          "Severity": "HIGH",
+          "Description": "openssl flaw",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2024-0001",
+          "CweIDs": ["CWE-125"],
+          "PkgPath": "",
+          "CVSS": { "nvd": { "V3Score": 7.5 } }
+        },
+        {
+          "VulnerabilityID": "CVE-2024-0002",
+          "PkgName": "busybox",
+          "InstalledVersion": "1.36.1-r15",
+          "Severity": "LOW",
+          "Description": "busybox issue",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2024-0002"
+        }
+      ]
+    },
+    {
+      "Target": "Dockerfile",
+      "Class": "config",
+      "Type": "dockerfile",
+      "Misconfigurations": [
+        {
+          "Type": "Dockerfile Security Check",
+          "ID": "DS002",
+          "AVDID": "AVD-DS-0002",
+          "Title": "Image user should not be 'root'",
+          "Description": "Running containers with 'root' user can lead to a container escape situation.",
+          "Message": "Specify at least 1 USER command in Dockerfile with non-root user as argument",
+          "Resolution": "Add 'USER <non root user name>' line to the Dockerfile",
+          "Severity": "HIGH",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ds002",
+          "References": ["https://avd.aquasec.com/misconfig/ds002"],
+          "Status": "FAIL",
+          "CauseMetadata": { "Provider": "Dockerfile", "Service": "general", "StartLine": 1, "EndLine": 1 }
+        },
+        {
+          "Type": "Dockerfile Security Check",
+          "ID": "DS026",
+          "AVDID": "AVD-DS-0026",
+          "Title": "No HEALTHCHECK defined",
+          "Severity": "LOW",
+          "PrimaryURL": "https://avd.aquasec.com/misconfig/ds026",
+          "Status": "PASS",
+          "CauseMetadata": { "Provider": "Dockerfile", "Service": "general" }
+        }
+      ]
+    }
+  ]
+}

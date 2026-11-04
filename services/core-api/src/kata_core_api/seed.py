@@ -21,7 +21,7 @@ from kata_core_api.db import make_engine, make_session_factory, session_scope
 from kata_domain.enums import FindingStatus, Severity
 from kata_domain.models import Engagement, Product, ProductType, ScannerConfig, Test
 
-SCANNERS = ["trivy", "grype", "kubescape", "sarif", "bandit"]
+SCANNERS = ["generic", "trivy", "grype", "kubescape", "sarif", "bandit"]
 _SEVERITIES = list(Severity)
 # Steady state: most findings are active; a tail is triaged/closed.
 _STATUS_WEIGHTS = [

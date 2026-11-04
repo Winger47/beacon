@@ -6,6 +6,8 @@ import App from './App';
 import Login from './pages/Login';
 import Products from './pages/Products';
 import ProductFindings from './pages/ProductFindings';
+import ImportScan from './pages/ImportScan';
+import TestPage from './pages/TestPage';
 
 const queryClient = new QueryClient();
 
@@ -18,6 +20,8 @@ const router = createBrowserRouter([
       { index: true, element: <Navigate to="/products" replace /> },
       { path: 'products', element: <Products /> },
       { path: 'products/:id/findings', element: <ProductFindings /> },
+      { path: 'import', element: <ImportScan /> },
+      { path: 'tests/:id', element: <TestPage /> },
     ],
   },
 ]);

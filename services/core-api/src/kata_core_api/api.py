@@ -3,7 +3,7 @@ repositories and the transition() service (CLAUDE.md #5). No business logic here
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -12,10 +12,13 @@ from kata_domain.enums import ActorType, FindingStatus, Role, Severity
 from kata_domain.models import Engagement, ProductType
 from kata_domain.repositories import Principal
 from kata_domain.transition import transition
+from kata_parsers import ParserError
 
-from . import auth, schemas
+from . import auth, importer, schemas
+from .config import get_settings
 from .deps import get_principal, get_session
 from .errors import ProblemError
+from .importer import ImportTooLarge
 
 router = APIRouter(prefix="/api/v1")
 
@@ -146,10 +149,99 @@ def create_test(
     )
 
 
+def _load_engagement_or_404(session: Session, engagement_id: int) -> Engagement:
+    engagement = session.get(Engagement, engagement_id)
+    if engagement is None:
+        raise ProblemError(
+            status=404, title="Not Found", detail="Resource not found.",
+            type_="https://kata.dev/problems/not-found",
+        )
+    return engagement
+
+
+@router.get("/engagements/{engagement_id}/tests", response_model=list[schemas.TestOut])
+def list_tests(
+    engagement_id: int,
+    principal: Principal = Depends(get_principal),
+    session: Session = Depends(get_session),
+) -> object:
+    engagement = _load_engagement_or_404(session, engagement_id)
+    _require_product_role(session, principal, engagement.product_id, Role.READER)
+    return repo.list_tests(session, engagement_id=engagement_id)
+
+
+@router.get("/tests/{test_id}", response_model=schemas.TestDetailOut)
+def get_test(
+    test_id: int,
+    principal: Principal = Depends(get_principal),
+    session: Session = Depends(get_session),
+) -> object:
+    test = repo.get_test(session, test_id)
+    if test is None:
+        raise ProblemError(
+            status=404, title="Not Found", detail="Resource not found.",
+            type_="https://kata.dev/problems/not-found",
+        )
+    engagement = _load_engagement_or_404(session, test.engagement_id)
+    _require_product_role(session, principal, engagement.product_id, Role.READER)
+    imports = repo.list_test_imports(session, test_id=test_id)
+    return schemas.TestDetailOut(
+        id=test.id,
+        engagement_id=test.engagement_id,
+        scanner_key=test.scanner_key,
+        title=test.title,
+        imports=[schemas.TestImportOut.model_validate(i) for i in imports],
+    )
+
+
+# ------------------------------------------------------------------------- import
+@router.post("/import", response_model=schemas.ImportResultOut, status_code=201)
+def import_report(
+    engagement_id: int = Form(...),
+    scanner_key: str = Form(...),
+    title: str | None = Form(default=None),
+    file: UploadFile = File(...),
+    principal: Principal = Depends(get_principal),
+    session: Session = Depends(get_session),
+) -> schemas.ImportResultOut:
+    """Synchronous, size-capped import (Phase 2). Parses the report into a new Test's findings
+    in the request transaction. Large uploads and the async job state machine are Phase 4."""
+    engagement = _load_engagement_or_404(session, engagement_id)
+    _require_product_role(session, principal, engagement.product_id, Role.WRITER)
+
+    try:
+        result = importer.import_scan(
+            session,
+            engagement=engagement,
+            scanner_key=scanner_key,
+            stream=file.file,
+            title=title,
+            max_bytes=get_settings().import_max_bytes,
+        )
+    except ImportTooLarge as exc:
+        raise ProblemError(
+            status=413, title="Payload Too Large", detail=str(exc),
+            type_="https://kata.dev/problems/import-too-large",
+        ) from exc
+    except ParserError as exc:
+        # ParserError messages are crafted to be safe to show (never raw report content).
+        raise ProblemError(
+            status=422, title="Unprocessable report", detail=str(exc),
+            type_="https://kata.dev/problems/parser-error",
+        ) from exc
+
+    return schemas.ImportResultOut(
+        test_id=result.test_id,
+        import_job_id=result.import_job_id,
+        created_count=result.created_count,
+    )
+
+
 # ---------------------------------------------------------------------- findings
 @router.get("/findings", response_model=schemas.FindingPageOut)
 def list_findings(
     product_id: int | None = None,
+    test_id: int | None = None,
     status: FindingStatus | None = None,
     severity: Severity | None = None,
     limit: int = Query(default=100, ge=1, le=1000),
@@ -159,8 +251,8 @@ def list_findings(
 ) -> schemas.FindingPageOut:
     try:
         page = repo.list_findings(
-            session, principal, product_id=product_id, status=status, severity=severity,
-            limit=limit, cursor=cursor,
+            session, principal, product_id=product_id, test_id=test_id, status=status,
+            severity=severity, limit=limit, cursor=cursor,
         )
     except ValueError as exc:  # invalid cursor
         raise ProblemError(

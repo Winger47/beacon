@@ -24,6 +24,7 @@ export default function App(): JSX.Element {
         <nav style={{ display: 'flex', gap: 12 }}>
           <strong>{appTitle()}</strong>
           <Link to="/products">Products</Link>
+          <Link to="/import">Import</Link>
         </nav>
         <span style={{ color: '#666' }}>
           {devUser}{' '}

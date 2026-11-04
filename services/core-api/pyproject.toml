@@ -5,12 +5,14 @@ description = "Kata core-api: domain CRUD, RBAC, triage workflows, queries. Owns
 requires-python = ">=3.12"
 dependencies = [
     "kata-domain",
+    "kata-parsers",
     "sqlalchemy>=2.0.30",
     "alembic>=1.13",
     "psycopg[binary]>=3.2",
     "pydantic>=2.7",
     "pydantic-settings>=2.4",
     "fastapi>=0.115",
+    "python-multipart>=0.0.9",
     "uvicorn[standard]>=0.30",
     "pyjwt[crypto]>=2.9",
     "httpx>=0.27",
@@ -25,3 +27,4 @@ packages = ["src/kata_core_api"]
 
 [tool.uv.sources]
 kata-domain = { workspace = true }
+kata-parsers = { workspace = true }

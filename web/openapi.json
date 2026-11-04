@@ -257,6 +257,125 @@
             }
           }
         }
+      },
+      "get": {
+        "summary": "List Tests",
+        "operationId": "list_tests_api_v1_engagements__engagement_id__tests_get",
+        "parameters": [
+          {
+            "name": "engagement_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Engagement Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TestOut"
+                  },
+                  "title": "Response List Tests Api V1 Engagements  Engagement Id  Tests Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/tests/{test_id}": {
+      "get": {
+        "summary": "Get Test",
+        "operationId": "get_test_api_v1_tests__test_id__get",
+        "parameters": [
+          {
+            "name": "test_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Test Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TestDetailOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/import": {
+      "post": {
+        "summary": "Import Report",
+        "description": "Synchronous, size-capped import (Phase 2). Parses the report into a new Test's findings\nin the request transaction. Large uploads and the async job state machine are Phase 4.",
+        "operationId": "import_report_api_v1_import_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_import_report_api_v1_import_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResultOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/findings": {
@@ -278,6 +397,22 @@
                 }
               ],
               "title": "Product Id"
+            }
+          },
+          {
+            "name": "test_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Test Id"
             }
           },
           {
@@ -657,6 +792,41 @@
         ],
         "title": "ApiTokenOut"
       },
+      "Body_import_report_api_v1_import_post": {
+        "properties": {
+          "engagement_id": {
+            "type": "integer",
+            "title": "Engagement Id"
+          },
+          "scanner_key": {
+            "type": "string",
+            "title": "Scanner Key"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "engagement_id",
+          "scanner_key",
+          "file"
+        ],
+        "title": "Body_import_report_api_v1_import_post"
+      },
       "EngagementIn": {
         "properties": {
           "name": {
@@ -818,6 +988,30 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "ImportResultOut": {
+        "properties": {
+          "test_id": {
+            "type": "integer",
+            "title": "Test Id"
+          },
+          "import_job_id": {
+            "type": "string",
+            "title": "Import Job Id"
+          },
+          "created_count": {
+            "type": "integer",
+            "title": "Created Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "test_id",
+          "import_job_id",
+          "created_count"
+        ],
+        "title": "ImportResultOut",
+        "description": "Result of a synchronous POST /import (Phase 2)."
+      },
       "ProductIn": {
         "properties": {
           "product_type_id": {
@@ -918,6 +1112,102 @@
         ],
         "title": "Severity",
         "description": "Finding severity. Labels match ``core.severity``."
+      },
+      "TestDetailOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "engagement_id": {
+            "type": "integer",
+            "title": "Engagement Id"
+          },
+          "scanner_key": {
+            "type": "string",
+            "title": "Scanner Key"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "imports": {
+            "items": {
+              "$ref": "#/components/schemas/TestImportOut"
+            },
+            "type": "array",
+            "title": "Imports",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "engagement_id",
+          "scanner_key"
+        ],
+        "title": "TestDetailOut"
+      },
+      "TestImportOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "test_id": {
+            "type": "integer",
+            "title": "Test Id"
+          },
+          "import_job_id": {
+            "type": "string",
+            "title": "Import Job Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "created_count": {
+            "type": "integer",
+            "title": "Created Count"
+          },
+          "untouched_count": {
+            "type": "integer",
+            "title": "Untouched Count"
+          },
+          "reactivated_count": {
+            "type": "integer",
+            "title": "Reactivated Count"
+          },
+          "closed_count": {
+            "type": "integer",
+            "title": "Closed Count"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "test_id",
+          "import_job_id",
+          "kind",
+          "created_count",
+          "untouched_count",
+          "reactivated_count",
+          "closed_count",
+          "created_at"
+        ],
+        "title": "TestImportOut"
       },
       "TestIn": {
         "properties": {

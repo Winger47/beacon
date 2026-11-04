@@ -1611,16 +1611,16 @@ Format for each phase: **Tasks** (checkboxes), **Deliverables**, **ADRs to write
 ### Phase 2: Import v1, in-process (2 weeks)
 
 **Tasks**
-- [ ] Parser SDK (`kata_parsers`): base classes, registry, limits, `ParserError`.
-- [ ] Generate real sample reports: Trivy against 3 public images (small, medium, large); Kubescape against a local kind cluster with intentionally bad manifests. Commit small samples as fixtures; keep large ones out of git.
-- [ ] Trivy parser (vulnerabilities + misconfigurations) with streaming.
-- [ ] Kubescape parser (controls → findings per failed resource).
-- [ ] Kata Generic JSON parser + JSON Schema for it.
-- [ ] Golden tests: `fixture.json → expected.jsonl`, with a `--update-golden` flag.
-- [ ] `POST /api/v1/import` (synchronous, small files only, size-capped) → creates Test, findings, `test_import` row.
-- [ ] Import page in UI; Test page shows findings and import history.
+- [x] Parser SDK (`kata_parsers`): base classes, registry, limits, `ParserError`.
+- [ ] Generate real sample reports: Trivy against 3 public images (small, medium, large); Kubescape against a local kind cluster with intentionally bad manifests. Commit small samples as fixtures; keep large ones out of git. _(STILL OPEN: fixtures are schema-faithful but hand-authored, not scanner-generated — needs Trivy/kind locally; regenerate with `pytest --update-golden`)_
+- [x] Trivy parser (vulnerabilities + misconfigurations) with streaming. _(implemented by Claude; "You build" split waived by the user)_
+- [x] Kubescape parser (controls → findings per failed resource). _(one finding per failed control per resource; severity from scoreFactor — see validation caveat in kubescape.py)_
+- [x] Kata Generic JSON parser + JSON Schema for it.
+- [x] Golden tests: `fixture.json → expected.jsonl`, with a `--update-golden` flag. _(generic, Trivy, Kubescape all green)_
+- [x] `POST /api/v1/import` (synchronous, small files only, size-capped) → creates Test, findings, `test_import` row.
+- [x] Import page in UI; Test page shows findings and import history.
 
-**ADRs:** canonical finding model (include the `Location` generalization); how severities from different tools are normalized.
+**ADRs:** canonical finding model (include the `Location` generalization); how severities from different tools are normalized. _(ADR-0009 and ADR-0010 — accepted)_
 
 **Think first**
 - Kubescape reports one control failing on 200 resources. Is that 1 finding or 200? What does DefectDojo do? What does a security engineer *want* to triage?

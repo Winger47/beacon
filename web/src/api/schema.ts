@@ -81,10 +81,49 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** List Tests */
+        get: operations["list_tests_api_v1_engagements__engagement_id__tests_get"];
         put?: never;
         /** Create Test */
         post: operations["create_test_api_v1_engagements__engagement_id__tests_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tests/{test_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Test */
+        get: operations["get_test_api_v1_tests__test_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Import Report
+         * @description Synchronous, size-capped import (Phase 2). Parses the report into a new Test's findings
+         *     in the request transaction. Large uploads and the async job state machine are Phase 4.
+         */
+        post: operations["import_report_api_v1_import_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -225,6 +264,17 @@ export interface components {
              */
             created_at: string;
         };
+        /** Body_import_report_api_v1_import_post */
+        Body_import_report_api_v1_import_post: {
+            /** Engagement Id */
+            engagement_id: number;
+            /** Scanner Key */
+            scanner_key: string;
+            /** Title */
+            title?: string | null;
+            /** File */
+            file: string;
+        };
         /** EngagementIn */
         EngagementIn: {
             /** Name */
@@ -289,6 +339,18 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /**
+         * ImportResultOut
+         * @description Result of a synchronous POST /import (Phase 2).
+         */
+        ImportResultOut: {
+            /** Test Id */
+            test_id: number;
+            /** Import Job Id */
+            import_job_id: string;
+            /** Created Count */
+            created_count: number;
+        };
         /** ProductIn */
         ProductIn: {
             /** Product Type Id */
@@ -330,6 +392,46 @@ export interface components {
          * @enum {string}
          */
         Severity: "info" | "low" | "medium" | "high" | "critical";
+        /** TestDetailOut */
+        TestDetailOut: {
+            /** Id */
+            id: number;
+            /** Engagement Id */
+            engagement_id: number;
+            /** Scanner Key */
+            scanner_key: string;
+            /** Title */
+            title?: string | null;
+            /**
+             * Imports
+             * @default []
+             */
+            imports: components["schemas"]["TestImportOut"][];
+        };
+        /** TestImportOut */
+        TestImportOut: {
+            /** Id */
+            id: number;
+            /** Test Id */
+            test_id: number;
+            /** Import Job Id */
+            import_job_id: string;
+            /** Kind */
+            kind: string;
+            /** Created Count */
+            created_count: number;
+            /** Untouched Count */
+            untouched_count: number;
+            /** Reactivated Count */
+            reactivated_count: number;
+            /** Closed Count */
+            closed_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
         /** TestIn */
         TestIn: {
             /** Scanner Key */
@@ -548,6 +650,37 @@ export interface operations {
             };
         };
     };
+    list_tests_api_v1_engagements__engagement_id__tests_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                engagement_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     create_test_api_v1_engagements__engagement_id__tests_post: {
         parameters: {
             query?: never;
@@ -583,10 +716,75 @@ export interface operations {
             };
         };
     };
+    get_test_api_v1_tests__test_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                test_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TestDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    import_report_api_v1_import_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_import_report_api_v1_import_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ImportResultOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_findings_api_v1_findings_get: {
         parameters: {
             query?: {
                 product_id?: number | null;
+                test_id?: number | null;
                 status?: components["schemas"]["FindingStatus"] | null;
                 severity?: components["schemas"]["Severity"] | null;
                 limit?: number;
