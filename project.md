@@ -1612,9 +1612,9 @@ Format for each phase: **Tasks** (checkboxes), **Deliverables**, **ADRs to write
 
 **Tasks**
 - [x] Parser SDK (`kata_parsers`): base classes, registry, limits, `ParserError`.
-- [ ] Generate real sample reports: Trivy against 3 public images (small, medium, large); Kubescape against a local kind cluster with intentionally bad manifests. Commit small samples as fixtures; keep large ones out of git. _(STILL OPEN: fixtures are schema-faithful but hand-authored, not scanner-generated — needs Trivy/kind locally; regenerate with `pytest --update-golden`)_
-- [x] Trivy parser (vulnerabilities + misconfigurations) with streaming. _(implemented by Claude; "You build" split waived by the user)_
-- [x] Kubescape parser (controls → findings per failed resource). _(one finding per failed control per resource; severity from scoreFactor — see validation caveat in kubescape.py)_
+- [x] Generate real sample reports: Trivy against 3 public images (small, medium, large); Kubescape against a local kind cluster with intentionally bad manifests. Commit small samples as fixtures; keep large ones out of git. _(DONE with real scanner output, trimmed: `trivy image alpine:3.19` + `trivy config` on a bad Dockerfile; `kubescape scan` on a bad Deployment manifest. Scope note vs the letter of this task: one image (not 3) and a manifest scan (not a kind cluster) — add more images/a kind run if you want fuller coverage; regenerate with `pytest --update-golden`.)_
+- [x] Trivy parser (vulnerabilities + misconfigurations) with streaming. _(implemented by Claude; "You build" split waived by the user; validated against real Trivy v0.58 output)_
+- [x] Kubescape parser (controls → findings per failed resource). _(one finding per failed (control, resource); severity joined from summaryDetails.scoreFactor; validated against real Kubescape v3.0.44 output)_
 - [x] Kata Generic JSON parser + JSON Schema for it.
 - [x] Golden tests: `fixture.json → expected.jsonl`, with a `--update-golden` flag. _(generic, Trivy, Kubescape all green)_
 - [x] `POST /api/v1/import` (synchronous, small files only, size-capped) → creates Test, findings, `test_import` row.

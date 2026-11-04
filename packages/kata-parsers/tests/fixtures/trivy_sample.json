@@ -1,62 +1,249 @@
 {
   "SchemaVersion": 2,
+  "CreatedAt": "2026-11-04T09:02:18.331405506Z",
   "ArtifactName": "alpine:3.19",
+  "ArtifactType": "container_image",
+  "Metadata": {
+    "OS": {
+      "Family": "alpine",
+      "Name": "3.19.9",
+      "EOSL": true
+    },
+    "ImageID": "sha256:83b2b6703a620bf2e001ab57f7adc414d891787b3c59859b1b62909e48dd2242",
+    "DiffIDs": [
+      "sha256:0b44b2151d78267ab6f2c76208c3be18688f49b2b0afd6852a9533f2cce121c5"
+    ],
+    "RepoTags": [
+      "alpine:3.19"
+    ],
+    "RepoDigests": [
+      "alpine@sha256:6baf43584bcb78f2e5847d1de515f23499913ac9f12bdf834811a3145eb11ca1"
+    ],
+    "ImageConfig": {
+      "architecture": "amd64",
+      "created": "2025-10-08T11:10:40Z",
+      "history": [
+        {
+          "created": "2025-10-08T11:10:40Z",
+          "created_by": "ADD alpine-minirootfs-3.19.9-x86_64.tar.gz / # buildkit",
+          "comment": "buildkit.dockerfile.v0"
+        },
+        {
+          "created": "2025-10-08T11:10:40Z",
+          "created_by": "CMD [\"/bin/sh\"]",
+          "comment": "buildkit.dockerfile.v0",
+          "empty_layer": true
+        }
+      ],
+      "os": "linux",
+      "rootfs": {
+        "type": "layers",
+        "diff_ids": [
+          "sha256:0b44b2151d78267ab6f2c76208c3be18688f49b2b0afd6852a9533f2cce121c5"
+        ]
+      },
+      "config": {
+        "Cmd": [
+          "/bin/sh"
+        ],
+        "Env": [
+          "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        ],
+        "WorkingDir": "/"
+      }
+    }
+  },
   "Results": [
     {
-      "Target": "alpine:3.19 (alpine 3.19.1)",
+      "Target": "alpine:3.19 (alpine 3.19.9)",
       "Class": "os-pkgs",
       "Type": "alpine",
       "Vulnerabilities": [
         {
-          "VulnerabilityID": "CVE-2024-0001",
-          "PkgName": "openssl",
-          "InstalledVersion": "3.1.4-r5",
-          "FixedVersion": "3.1.4-r6",
-          "Severity": "HIGH",
-          "Description": "openssl flaw",
-          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2024-0001",
-          "CweIDs": ["CWE-125"],
-          "PkgPath": "",
-          "CVSS": { "nvd": { "V3Score": 7.5 } }
-        },
-        {
-          "VulnerabilityID": "CVE-2024-0002",
+          "VulnerabilityID": "CVE-2024-58251",
+          "PkgID": "busybox@1.36.1-r20",
           "PkgName": "busybox",
-          "InstalledVersion": "1.36.1-r15",
-          "Severity": "LOW",
-          "Description": "busybox issue",
-          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2024-0002"
-        }
-      ]
-    },
-    {
-      "Target": "Dockerfile",
-      "Class": "config",
-      "Type": "dockerfile",
-      "Misconfigurations": [
-        {
-          "Type": "Dockerfile Security Check",
-          "ID": "DS002",
-          "AVDID": "AVD-DS-0002",
-          "Title": "Image user should not be 'root'",
-          "Description": "Running containers with 'root' user can lead to a container escape situation.",
-          "Message": "Specify at least 1 USER command in Dockerfile with non-root user as argument",
-          "Resolution": "Add 'USER <non root user name>' line to the Dockerfile",
-          "Severity": "HIGH",
-          "PrimaryURL": "https://avd.aquasec.com/misconfig/ds002",
-          "References": ["https://avd.aquasec.com/misconfig/ds002"],
-          "Status": "FAIL",
-          "CauseMetadata": { "Provider": "Dockerfile", "Service": "general", "StartLine": 1, "EndLine": 1 }
+          "PkgIdentifier": {
+            "PURL": "pkg:apk/alpine/busybox@1.36.1-r20?arch=x86_64&distro=3.19.9",
+            "UID": "476fa821f9511a00"
+          },
+          "InstalledVersion": "1.36.1-r20",
+          "FixedVersion": "1.36.1-r21",
+          "Status": "fixed",
+          "Layer": {
+            "Digest": "sha256:17a39c0ba978cc27001e9c56a480f98106e1ab74bd56eb302f9fd4cf758ea43f",
+            "DiffID": "sha256:0b44b2151d78267ab6f2c76208c3be18688f49b2b0afd6852a9533f2cce121c5"
+          },
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2024-58251",
+          "DataSource": {
+            "ID": "alpine",
+            "Name": "Alpine Secdb",
+            "URL": "https://secdb.alpinelinux.org/"
+          },
+          "Title": "In netstat in BusyBox through 1.37.0, local users can launch of networ ...",
+          "Description": "In netstat in BusyBox through 1.37.0, local users can launch of network application with an argv[0] containing an ANSI terminal escape sequence, leading to a denial of service (terminal locked up) when netstat is used by a victim.",
+          "Severity": "MEDIUM",
+          "CweIDs": [
+            "CWE-150"
+          ],
+          "VendorSeverity": {
+            "ubuntu": 2
+          },
+          "References": [
+            "http://www.openwall.com/lists/oss-security/2025/04/23/6",
+            "https://bugs.busybox.net/show_bug.cgi?id=15922",
+            "https://www.busybox.net",
+            "https://www.busybox.net/downloads/",
+            "https://www.cve.org/CVERecord?id=CVE-2024-58251"
+          ],
+          "PublishedDate": "2025-04-23T18:16:03.057Z",
+          "LastModifiedDate": "2026-06-17T08:14:42.853Z"
         },
         {
-          "Type": "Dockerfile Security Check",
-          "ID": "DS026",
-          "AVDID": "AVD-DS-0026",
-          "Title": "No HEALTHCHECK defined",
+          "VulnerabilityID": "CVE-2025-46394",
+          "PkgID": "busybox@1.36.1-r20",
+          "PkgName": "busybox",
+          "PkgIdentifier": {
+            "PURL": "pkg:apk/alpine/busybox@1.36.1-r20?arch=x86_64&distro=3.19.9",
+            "UID": "476fa821f9511a00"
+          },
+          "InstalledVersion": "1.36.1-r20",
+          "FixedVersion": "1.36.1-r21",
+          "Status": "fixed",
+          "Layer": {
+            "Digest": "sha256:17a39c0ba978cc27001e9c56a480f98106e1ab74bd56eb302f9fd4cf758ea43f",
+            "DiffID": "sha256:0b44b2151d78267ab6f2c76208c3be18688f49b2b0afd6852a9533f2cce121c5"
+          },
+          "SeveritySource": "nvd",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2025-46394",
+          "DataSource": {
+            "ID": "alpine",
+            "Name": "Alpine Secdb",
+            "URL": "https://secdb.alpinelinux.org/"
+          },
+          "Title": "In tar in BusyBox through 1.37.0, a TAR archive can have filenames hid ...",
+          "Description": "In tar in BusyBox through 1.37.0, a TAR archive can have filenames hidden from a listing through the use of terminal escape sequences.",
           "Severity": "LOW",
-          "PrimaryURL": "https://avd.aquasec.com/misconfig/ds026",
-          "Status": "PASS",
-          "CauseMetadata": { "Provider": "Dockerfile", "Service": "general" }
+          "CweIDs": [
+            "CWE-451"
+          ],
+          "VendorSeverity": {
+            "nvd": 1,
+            "ubuntu": 2
+          },
+          "CVSS": {
+            "nvd": {
+              "V3Vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:N",
+              "V3Score": 3.3
+            }
+          },
+          "References": [
+            "http://www.openwall.com/lists/oss-security/2025/04/23/5",
+            "http://www.openwall.com/lists/oss-security/2025/04/24/3",
+            "https://bugs.busybox.net/show_bug.cgi?id=16018",
+            "https://cert-portal.siemens.com/productcert/html/ssa-253495.html",
+            "https://lists.busybox.net/pipermail/busybox/2024-July/090806.html",
+            "https://lists.busybox.net/pipermail/busybox/2024-July/090814.html",
+            "https://www.busybox.net",
+            "https://www.busybox.net/downloads/",
+            "https://www.cve.org/CVERecord?id=CVE-2025-46394",
+            "https://www.openwall.com/lists/oss-security/2025/04/23/1"
+          ],
+          "PublishedDate": "2025-04-23T16:15:48.713Z",
+          "LastModifiedDate": "2026-06-17T09:26:20.32Z"
+        },
+        {
+          "VulnerabilityID": "CVE-2024-58251",
+          "PkgID": "busybox-binsh@1.36.1-r20",
+          "PkgName": "busybox-binsh",
+          "PkgIdentifier": {
+            "PURL": "pkg:apk/alpine/busybox-binsh@1.36.1-r20?arch=x86_64&distro=3.19.9",
+            "UID": "7b24f1c61d963f39"
+          },
+          "InstalledVersion": "1.36.1-r20",
+          "FixedVersion": "1.36.1-r21",
+          "Status": "fixed",
+          "Layer": {
+            "Digest": "sha256:17a39c0ba978cc27001e9c56a480f98106e1ab74bd56eb302f9fd4cf758ea43f",
+            "DiffID": "sha256:0b44b2151d78267ab6f2c76208c3be18688f49b2b0afd6852a9533f2cce121c5"
+          },
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2024-58251",
+          "DataSource": {
+            "ID": "alpine",
+            "Name": "Alpine Secdb",
+            "URL": "https://secdb.alpinelinux.org/"
+          },
+          "Title": "In netstat in BusyBox through 1.37.0, local users can launch of networ ...",
+          "Description": "In netstat in BusyBox through 1.37.0, local users can launch of network application with an argv[0] containing an ANSI terminal escape sequence, leading to a denial of service (terminal locked up) when netstat is used by a victim.",
+          "Severity": "MEDIUM",
+          "CweIDs": [
+            "CWE-150"
+          ],
+          "VendorSeverity": {
+            "ubuntu": 2
+          },
+          "References": [
+            "http://www.openwall.com/lists/oss-security/2025/04/23/6",
+            "https://bugs.busybox.net/show_bug.cgi?id=15922",
+            "https://www.busybox.net",
+            "https://www.busybox.net/downloads/",
+            "https://www.cve.org/CVERecord?id=CVE-2024-58251"
+          ],
+          "PublishedDate": "2025-04-23T18:16:03.057Z",
+          "LastModifiedDate": "2026-06-17T08:14:42.853Z"
+        },
+        {
+          "VulnerabilityID": "CVE-2025-46394",
+          "PkgID": "busybox-binsh@1.36.1-r20",
+          "PkgName": "busybox-binsh",
+          "PkgIdentifier": {
+            "PURL": "pkg:apk/alpine/busybox-binsh@1.36.1-r20?arch=x86_64&distro=3.19.9",
+            "UID": "7b24f1c61d963f39"
+          },
+          "InstalledVersion": "1.36.1-r20",
+          "FixedVersion": "1.36.1-r21",
+          "Status": "fixed",
+          "Layer": {
+            "Digest": "sha256:17a39c0ba978cc27001e9c56a480f98106e1ab74bd56eb302f9fd4cf758ea43f",
+            "DiffID": "sha256:0b44b2151d78267ab6f2c76208c3be18688f49b2b0afd6852a9533f2cce121c5"
+          },
+          "SeveritySource": "nvd",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2025-46394",
+          "DataSource": {
+            "ID": "alpine",
+            "Name": "Alpine Secdb",
+            "URL": "https://secdb.alpinelinux.org/"
+          },
+          "Title": "In tar in BusyBox through 1.37.0, a TAR archive can have filenames hid ...",
+          "Description": "In tar in BusyBox through 1.37.0, a TAR archive can have filenames hidden from a listing through the use of terminal escape sequences.",
+          "Severity": "LOW",
+          "CweIDs": [
+            "CWE-451"
+          ],
+          "VendorSeverity": {
+            "nvd": 1,
+            "ubuntu": 2
+          },
+          "CVSS": {
+            "nvd": {
+              "V3Vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:N",
+              "V3Score": 3.3
+            }
+          },
+          "References": [
+            "http://www.openwall.com/lists/oss-security/2025/04/23/5",
+            "http://www.openwall.com/lists/oss-security/2025/04/24/3",
+            "https://bugs.busybox.net/show_bug.cgi?id=16018",
+            "https://cert-portal.siemens.com/productcert/html/ssa-253495.html",
+            "https://lists.busybox.net/pipermail/busybox/2024-July/090806.html",
+            "https://lists.busybox.net/pipermail/busybox/2024-July/090814.html",
+            "https://www.busybox.net",
+            "https://www.busybox.net/downloads/",
+            "https://www.cve.org/CVERecord?id=CVE-2025-46394",
+            "https://www.openwall.com/lists/oss-security/2025/04/23/1"
+          ],
+          "PublishedDate": "2025-04-23T16:15:48.713Z",
+          "LastModifiedDate": "2026-06-17T09:26:20.32Z"
         }
       ]
     }

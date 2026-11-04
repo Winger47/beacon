@@ -1,56 +1,352 @@
 {
+  "generationTime": "0001-01-01T00:00:00Z",
   "summaryDetails": {
     "controls": {
-      "C-0016": { "name": "Allow privilege escalation", "scoreFactor": 7.0 },
-      "C-0017": { "name": "Immutable container filesystem", "scoreFactor": 5.0 },
-      "C-0034": { "name": "Automatic mapping of service account", "scoreFactor": 3.0 }
+      "C-0296": {
+        "statusInfo": {
+          "status": "passed"
+        },
+        "controlID": "C-0296",
+        "name": "Mismatching selector",
+        "status": "passed",
+        "resourceIDs": {},
+        "ResourceCounters": {
+          "passedResources": 1,
+          "failedResources": 0,
+          "skippedResources": 0,
+          "excludedResources": 0
+        },
+        "subStatusCounters": {
+          "ignoredResources": 0
+        },
+        "score": 0,
+        "complianceScore": 100,
+        "scoreFactor": 3,
+        "category": {
+          "name": "Workload",
+          "id": "Cat-5"
+        }
+      },
+      "C-0271": {
+        "statusInfo": {
+          "status": "failed"
+        },
+        "controlID": "C-0271",
+        "name": "Ensure memory limits are set",
+        "status": "failed",
+        "resourceIDs": {},
+        "ResourceCounters": {
+          "passedResources": 0,
+          "failedResources": 1,
+          "skippedResources": 0,
+          "excludedResources": 0
+        },
+        "subStatusCounters": {
+          "ignoredResources": 0
+        },
+        "score": 100,
+        "complianceScore": 0,
+        "scoreFactor": 8,
+        "category": {
+          "name": "Workload",
+          "id": "Cat-5",
+          "subCategory": {
+            "name": "Resource management",
+            "id": "Cat-7"
+          }
+        }
+      },
+      "C-0269": {
+        "statusInfo": {
+          "status": "failed"
+        },
+        "controlID": "C-0269",
+        "name": "Ensure memory requests are set",
+        "status": "failed",
+        "resourceIDs": {},
+        "ResourceCounters": {
+          "passedResources": 0,
+          "failedResources": 1,
+          "skippedResources": 0,
+          "excludedResources": 0
+        },
+        "subStatusCounters": {
+          "ignoredResources": 0
+        },
+        "score": 100,
+        "complianceScore": 0,
+        "scoreFactor": 3,
+        "category": {
+          "name": "Workload",
+          "id": "Cat-5",
+          "subCategory": {
+            "name": "Resource management",
+            "id": "Cat-7"
+          }
+        }
+      },
+      "C-0211": {
+        "statusInfo": {
+          "status": "failed"
+        },
+        "controlID": "C-0211",
+        "name": "Apply Security Context to Your Pods and Containers",
+        "status": "failed",
+        "resourceIDs": {},
+        "ResourceCounters": {
+          "passedResources": 0,
+          "failedResources": 1,
+          "skippedResources": 0,
+          "excludedResources": 0
+        },
+        "subStatusCounters": {
+          "ignoredResources": 0
+        },
+        "score": 100,
+        "complianceScore": 0,
+        "scoreFactor": 8,
+        "category": {
+          "name": "Workload",
+          "id": "Cat-5"
+        }
+      }
     }
   },
   "results": [
     {
-      "resourceID": "apps/v1/default/Deployment/nginx",
+      "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
       "controls": [
         {
-          "controlID": "C-0016",
-          "name": "Allow privilege escalation",
-          "scoreFactor": 7.0,
-          "status": { "status": "failed" },
-          "rules": [{ "name": "rule-allow-privilege-escalation", "status": { "status": "failed" } }]
+          "controlID": "C-0271",
+          "name": "Ensure memory limits are set",
+          "status": {
+            "status": "failed"
+          },
+          "rules": [
+            {
+              "name": "resources-memory-limits",
+              "status": "failed",
+              "subStatus": "",
+              "paths": [
+                {
+                  "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
+                  "fixPath": {
+                    "path": "spec.template.spec.containers[0].resources.limits.memory",
+                    "value": "YOUR_VALUE"
+                  }
+                }
+              ]
+            }
+          ]
         },
         {
-          "controlID": "C-0017",
-          "name": "Immutable container filesystem",
-          "scoreFactor": 5.0,
-          "status": { "status": "failed" }
+          "controlID": "C-0211",
+          "name": "Apply Security Context to Your Pods and Containers",
+          "status": {
+            "status": "failed"
+          },
+          "rules": [
+            {
+              "name": "rule-privilege-escalation",
+              "status": "failed",
+              "subStatus": "",
+              "paths": [
+                {
+                  "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
+                  "failedPath": "spec.template.spec.containers[0].securityContext.privileged",
+                  "fixPath": {
+                    "path": "",
+                    "value": ""
+                  }
+                },
+                {
+                  "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
+                  "deletePath": "spec.template.spec.containers[0].securityContext.privileged",
+                  "fixPath": {
+                    "path": "",
+                    "value": ""
+                  }
+                }
+              ]
+            },
+            {
+              "name": "immutable-container-filesystem",
+              "status": "failed",
+              "subStatus": "",
+              "paths": [
+                {
+                  "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
+                  "fixPath": {
+                    "path": "spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem",
+                    "value": "true"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "non-root-containers",
+              "status": "failed",
+              "subStatus": "",
+              "paths": [
+                {
+                  "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
+                  "fixPath": {
+                    "path": "spec.template.spec.containers[0].securityContext.runAsUser",
+                    "value": "1000"
+                  }
+                },
+                {
+                  "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
+                  "fixPath": {
+                    "path": "spec.template.spec.containers[0].securityContext.runAsGroup",
+                    "value": "1000"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "drop-capability-netraw",
+              "status": "failed",
+              "subStatus": "",
+              "paths": [
+                {
+                  "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
+                  "fixPath": {
+                    "path": "spec.template.spec.containers[0].securityContext.capabilities.drop[0]",
+                    "value": "NET_RAW"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "set-seLinuxOptions",
+              "status": "failed",
+              "subStatus": "",
+              "paths": [
+                {
+                  "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
+                  "fixPath": {
+                    "path": "spec.template.spec.containers[0].securityContext.seLinuxOptions",
+                    "value": "YOUR_VALUE"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "set-seccomp-profile",
+              "status": "failed",
+              "subStatus": "",
+              "paths": [
+                {
+                  "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
+                  "fixPath": {
+                    "path": "spec.template.spec.containers[0].securityContext.seccompProfile",
+                    "value": "YOUR_VALUE"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "set-procmount-default",
+              "status": "passed",
+              "subStatus": ""
+            },
+            {
+              "name": "set-fsgroup-value",
+              "status": "passed",
+              "subStatus": ""
+            },
+            {
+              "name": "set-fsgroupchangepolicy-value",
+              "status": "passed",
+              "subStatus": ""
+            },
+            {
+              "name": "set-sysctls-params",
+              "status": "passed",
+              "subStatus": ""
+            },
+            {
+              "name": "set-supplementalgroups-values",
+              "status": "passed",
+              "subStatus": ""
+            },
+            {
+              "name": "rule-allow-privilege-escalation",
+              "status": "failed",
+              "subStatus": "",
+              "paths": [
+                {
+                  "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
+                  "fixPath": {
+                    "path": "spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation",
+                    "value": "false"
+                  }
+                },
+                {
+                  "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
+                  "fixPath": {
+                    "path": "spec.template.spec.containers[0].securityContext.privileged",
+                    "value": "false"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "set-gmsacredentialspecname-value",
+              "status": "passed",
+              "subStatus": ""
+            },
+            {
+              "name": "set-hostprocess-true",
+              "status": "passed",
+              "subStatus": ""
+            },
+            {
+              "name": "set-runasusername-value",
+              "status": "passed",
+              "subStatus": ""
+            }
+          ]
         },
         {
-          "controlID": "C-0034",
-          "name": "Automatic mapping of service account",
-          "scoreFactor": 3.0,
-          "status": { "status": "passed" }
-        }
-      ]
-    },
-    {
-      "resourceID": "apps/v1/kube-system/DaemonSet/kube-proxy",
-      "controls": [
+          "controlID": "C-0269",
+          "name": "Ensure memory requests are set",
+          "status": {
+            "status": "failed"
+          },
+          "rules": [
+            {
+              "name": "resources-memory-requests",
+              "status": "failed",
+              "subStatus": "",
+              "paths": [
+                {
+                  "resourceID": "path=2239022173/api=apps/v1/default/Deployment/nginx",
+                  "fixPath": {
+                    "path": "spec.template.spec.containers[0].resources.requests.memory",
+                    "value": "YOUR_VALUE"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
-          "controlID": "C-0016",
-          "name": "Allow privilege escalation",
-          "scoreFactor": 7.0,
-          "status": { "status": "failed" }
+          "controlID": "C-0296",
+          "name": "Mismatching selector",
+          "status": {
+            "status": "passed"
+          },
+          "rules": [
+            {
+              "name": "mismatching-selector",
+              "status": "passed",
+              "subStatus": ""
+            }
+          ]
         }
       ]
-    }
-  ],
-  "resources": [
-    {
-      "resourceID": "apps/v1/default/Deployment/nginx",
-      "object": {
-        "apiVersion": "apps/v1",
-        "kind": "Deployment",
-        "metadata": { "name": "nginx", "namespace": "default" }
-      }
     }
   ]
 }
