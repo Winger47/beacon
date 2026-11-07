@@ -23,6 +23,13 @@ class Settings(BaseSettings):
         description="Hard cap on a synchronous /import upload. Larger reports are rejected 413.",
     )
 
+    # Mass-closure circuit breaker (ADR-0013). A reimport pauses to NEEDS_CONFIRMATION when it
+    # would close > close_ratio of a Test's active findings AND the incoming report is smaller
+    # than close_prev_ratio of what was there — but only above close_min_findings.
+    close_ratio: float = Field(default=0.50)
+    close_prev_ratio: float = Field(default=0.50)
+    close_min_findings: int = Field(default=10)
+
     # OIDC / Keycloak. JWKS is fetched and cached from the issuer.
     oidc_jwks_url: str = Field(
         default="http://localhost:8080/realms/kata/protocol/openid-connect/certs"

@@ -243,6 +243,12 @@ class Finding(Base):
     unique_id_from_tool: Mapped[str | None] = mapped_column(Text)
     vuln_id_from_tool: Mapped[str | None] = mapped_column(Text)
     hash_code: Mapped[str | None] = mapped_column(String(64))
+    # Scanner-independent hash over the shared subset (vuln_ids + component + version), set
+    # only when those exist, for cross-tool dedup (ADR-0011/0012). NULL = does not cross-dedup.
+    cross_tool_hash: Mapped[str | None] = mapped_column(String(64))
+    # The single string dedup/reimport compare on (uid, hash, or coalesce per scanner_config).
+    # Stored so the reimport diff is a plain index lookup, not a CASE expression (3.7.4).
+    match_key: Mapped[str | None] = mapped_column(Text)
     duplicate_of: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("finding.id"))
     sla_due_date: Mapped[datetime.date | None] = mapped_column(Date)
     first_seen_at: Mapped[datetime.datetime] = mapped_column(
@@ -271,7 +277,10 @@ class Finding(Base):
             "(status = 'mitigated') = (mitigated_at IS NOT NULL)",
             name="mitigated_at_consistency",
         ),
-        # Reimport matching (scoped to one test): the hottest path in the system.
+        # Reimport matching (scoped to one test): the hottest path in the system. The
+        # match_key index serves the set-based reimport diff (3.7.4); hash/uid indexes remain
+        # for cross-tool dedup and pre-match_key rows.
+        Index("finding_test_matchkey", "test_id", "match_key"),
         Index("finding_test_hash", "test_id", "hash_code"),
         Index(
             "finding_test_uid",
@@ -279,12 +288,19 @@ class Finding(Base):
             "unique_id_from_tool",
             postgresql_where=text("unique_id_from_tool IS NOT NULL"),
         ),
-        # Same-tool / cross-tool dedup (product scope); only originals are match targets.
+        # Same-tool dedup (product scope); only originals are match targets.
         Index(
             "finding_product_hash",
             "product_id",
             "hash_code",
             postgresql_where=text("duplicate_of IS NULL"),
+        ),
+        # Cross-tool dedup (product scope, hash path, only findings that carry a shared key).
+        Index(
+            "finding_product_crosshash",
+            "product_id",
+            "cross_tool_hash",
+            postgresql_where=text("duplicate_of IS NULL AND cross_tool_hash IS NOT NULL"),
         ),
         # UI list queries and keyset pagination.
         Index("finding_product_status", "product_id", "status", "severity", "id"),
@@ -326,6 +342,40 @@ class TestImport(Base):
 
     __table_args__ = (
         CheckConstraint("kind IN ('import','reimport')", name="kind_valid"),
+    )
+
+
+class ReimportDecision(Base):
+    """A reimport paused by the mass-closure circuit breaker, awaiting a human (ADR-0013).
+
+    One row per reimport job that tripped the breaker. Holds the candidate close set so
+    ``confirm`` can apply it later and ``reject`` can discard it. Kept after resolution for
+    audit (``status`` moves needs_confirmation → confirmed|rejected); never deleted.
+    """
+
+    __tablename__ = "reimport_decision"
+
+    import_job_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    test_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("test.id"), nullable=False)
+    status: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("'needs_confirmation'")
+    )
+    close_candidate_ids: Mapped[list[int]] = mapped_column(
+        ARRAY(BigInteger), nullable=False, server_default=text("'{}'")
+    )
+    active_before: Mapped[int] = mapped_column(Integer, nullable=False)
+    incoming_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    previous_import_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    resolved_at: Mapped[datetime.datetime | None] = mapped_column(DateTime(timezone=True))
+
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('needs_confirmation','confirmed','rejected')",
+            name="reimport_decision_status_valid",
+        ),
     )
 
 

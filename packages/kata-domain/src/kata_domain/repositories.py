@@ -28,6 +28,8 @@ from .models import (
     ProductMember,
     ProductType,
     ProductTypeMember,
+    ReimportDecision,
+    ScannerConfig,
     Test,
     TestImport,
     UserProductAccess,
@@ -210,6 +212,28 @@ def create_test(
 
 def get_product(session: Session, product_id: int) -> Product | None:
     return session.get(Product, product_id)
+
+
+def get_scanner_config(session: Session, scanner_key: str) -> ScannerConfig | None:
+    return session.get(ScannerConfig, scanner_key)
+
+
+def get_reimport_decision(session: Session, import_job_id: str) -> ReimportDecision | None:
+    return session.get(ReimportDecision, import_job_id)
+
+
+def list_pending_decisions(session: Session, *, test_id: int) -> list[ReimportDecision]:
+    """Unresolved mass-closure pauses for a test, newest first (Test page confirm/reject UI)."""
+    return list(
+        session.scalars(
+            select(ReimportDecision)
+            .where(
+                ReimportDecision.test_id == test_id,
+                ReimportDecision.status == "needs_confirmation",
+            )
+            .order_by(ReimportDecision.created_at.desc())
+        ).all()
+    )
 
 
 def get_test(session: Session, test_id: int) -> Test | None:

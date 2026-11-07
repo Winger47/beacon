@@ -97,6 +97,11 @@ seed: ## Seed synthetic data (FINDINGS=1000000 PRODUCTS=50 via COPY)
 	cd services/core-api && PYTHONPATH="$(PYSRC)" uv run --project "$(CURDIR)" \
 		python -m kata_core_api.seed --products $(PRODUCTS) --findings $(FINDINGS)
 
+parity: ## Run the Phase 3 reimport parity harness against a running core-api (BASE_URL overridable)
+	PYTHONPATH="$(PYSRC)" uv run --project "$(CURDIR)" python -m scripts.parity.run \
+		--base-url $(BASE_URL)
+BASE_URL ?= http://localhost:8001
+
 clean: ## Remove caches and local build artifacts
 	find . -type d -name __pycache__ -prune -exec rm -rf {} + 2>/dev/null || true
 	rm -rf .pytest_cache .mypy_cache .ruff_cache web/node_modules/.vite

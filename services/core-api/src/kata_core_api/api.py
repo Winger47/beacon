@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from kata_domain import repositories as repo
 from kata_domain.enums import ActorType, FindingStatus, Role, Severity
 from kata_domain.models import Engagement, ProductType
+from kata_domain.reimport import BreakerConfig, confirm_reimport, reject_reimport
 from kata_domain.repositories import Principal
 from kata_domain.transition import transition
 from kata_parsers import ParserError
@@ -185,12 +186,14 @@ def get_test(
     engagement = _load_engagement_or_404(session, test.engagement_id)
     _require_product_role(session, principal, engagement.product_id, Role.READER)
     imports = repo.list_test_imports(session, test_id=test_id)
+    pending = repo.list_pending_decisions(session, test_id=test_id)
     return schemas.TestDetailOut(
         id=test.id,
         engagement_id=test.engagement_id,
         scanner_key=test.scanner_key,
         title=test.title,
         imports=[schemas.TestImportOut.model_validate(i) for i in imports],
+        pending_decisions=[schemas.ReimportDecisionOut.model_validate(d) for d in pending],
     )
 
 
@@ -234,6 +237,118 @@ def import_report(
         test_id=result.test_id,
         import_job_id=result.import_job_id,
         created_count=result.created_count,
+    )
+
+
+def _breaker_config() -> BreakerConfig:
+    s = get_settings()
+    return BreakerConfig(
+        close_ratio=s.close_ratio,
+        prev_ratio=s.close_prev_ratio,
+        min_findings=s.close_min_findings,
+    )
+
+
+@router.post("/reimport", response_model=schemas.ReimportResultOut, status_code=201)
+def reimport_report(
+    test_id: int = Form(...),
+    file: UploadFile = File(...),
+    close_old_findings: bool = Form(default=True),
+    do_not_reactivate: bool = Form(default=False),
+    principal: Principal = Depends(get_principal),
+    session: Session = Depends(get_session),
+) -> schemas.ReimportResultOut:
+    """Reimport a report into an existing Test, diffing against its findings (Phase 3, 3.7.4).
+
+    Uses the Test's own scanner. A mass-closure that looks like a truncated report pauses to
+    ``needs_confirmation`` (resolve via /reimport/{job_id}/confirm|reject)."""
+    test = repo.get_test(session, test_id)
+    if test is None:
+        raise ProblemError(
+            status=404, title="Not Found", detail="Resource not found.",
+            type_="https://kata.dev/problems/not-found",
+        )
+    engagement = _load_engagement_or_404(session, test.engagement_id)
+    _require_product_role(session, principal, engagement.product_id, Role.WRITER)
+
+    try:
+        outcome = importer.reimport_scan(
+            session,
+            test=test,
+            stream=file.file,
+            close_old_findings=close_old_findings,
+            do_not_reactivate=do_not_reactivate,
+            actor_id=str(principal.user_id),
+            max_bytes=get_settings().import_max_bytes,
+            breaker=_breaker_config(),
+        )
+    except ImportTooLarge as exc:
+        raise ProblemError(
+            status=413, title="Payload Too Large", detail=str(exc),
+            type_="https://kata.dev/problems/import-too-large",
+        ) from exc
+    except ParserError as exc:
+        raise ProblemError(
+            status=422, title="Unprocessable report", detail=str(exc),
+            type_="https://kata.dev/problems/parser-error",
+        ) from exc
+
+    return schemas.ReimportResultOut(
+        status=outcome.status,
+        import_job_id=outcome.import_job_id,
+        created=outcome.created,
+        reactivated=outcome.reactivated,
+        untouched=outcome.untouched,
+        closed=outcome.closed,
+        close_candidates=outcome.close_candidates,
+    )
+
+
+def _load_decision_or_404(session: Session, principal: Principal, job_id: str) -> object:
+    decision = repo.get_reimport_decision(session, job_id)
+    if decision is None:
+        raise ProblemError(
+            status=404, title="Not Found", detail="Resource not found.",
+            type_="https://kata.dev/problems/not-found",
+        )
+    test = repo.get_test(session, decision.test_id)
+    engagement = _load_engagement_or_404(session, test.engagement_id) if test else None
+    if engagement is None:
+        raise ProblemError(
+            status=404, title="Not Found", detail="Resource not found.",
+            type_="https://kata.dev/problems/not-found",
+        )
+    _require_product_role(session, principal, engagement.product_id, Role.WRITER)
+    return decision
+
+
+@router.post("/reimport/{job_id}/confirm", response_model=schemas.ReimportResultOut)
+def confirm_reimport_decision(
+    job_id: str,
+    principal: Principal = Depends(get_principal),
+    session: Session = Depends(get_session),
+) -> schemas.ReimportResultOut:
+    """Apply a paused mass closure after human review (ADR-0013)."""
+    decision = _load_decision_or_404(session, principal, job_id)
+    closed = confirm_reimport(session, decision=decision, actor_id=str(principal.user_id))  # type: ignore[arg-type]
+    return schemas.ReimportResultOut(
+        status="completed", import_job_id=job_id,
+        created=0, reactivated=0, untouched=0, closed=closed, close_candidates=0,
+    )
+
+
+@router.post("/reimport/{job_id}/reject", response_model=schemas.ReimportResultOut)
+def reject_reimport_decision(
+    job_id: str,
+    principal: Principal = Depends(get_principal),
+    session: Session = Depends(get_session),
+) -> schemas.ReimportResultOut:
+    """Discard a paused mass closure: nothing closes (ADR-0013)."""
+    decision = _load_decision_or_404(session, principal, job_id)
+    reject_reimport(session, decision=decision)  # type: ignore[arg-type]
+    return schemas.ReimportResultOut(
+        status="rejected", import_job_id=job_id,
+        created=0, reactivated=0, untouched=0, closed=0, close_candidates=0,
     )
 
 

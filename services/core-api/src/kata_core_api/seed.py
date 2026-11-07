@@ -22,6 +22,24 @@ from kata_domain.enums import FindingStatus, Severity
 from kata_domain.models import Engagement, Product, ProductType, ScannerConfig, Test
 
 SCANNERS = ["generic", "trivy", "grype", "kubescape", "sarif", "bandit"]
+
+# Per-scanner dedup config (ADR-0011). (dedup_algorithm, hash_fields). reimport mirrors dedup
+# in Phase 3. See the ADR for the rationale behind each field list.
+_SCANNER_CONFIGS: dict[str, tuple[str, list[str]]] = {
+    # SCA: CVE against a specific package@version is the identity; file/line absent.
+    "trivy": ("hash_code", ["vuln_ids", "component_name", "component_version"]),
+    "grype": ("hash_code", ["vuln_ids", "component_name", "component_version"]),
+    # K8s posture: control id + control name + manifest path.
+    "kubescape": (
+        "unique_id_from_tool_or_hash_code",
+        ["vuln_ids", "title", "file_path"],
+    ),
+    # SAST: rule id + rule + file (+ CWE); line deliberately excluded to avoid churn.
+    "bandit": ("unique_id_from_tool_or_hash_code", ["vuln_ids", "title", "file_path", "cwe"]),
+    "sarif": ("unique_id_from_tool_or_hash_code", ["vuln_ids", "title", "file_path", "cwe"]),
+    # Kata generic format: everything in the key is caller-stable.
+    "generic": ("hash_code", ["vuln_ids", "title", "file_path", "component_name"]),
+}
 _SEVERITIES = list(Severity)
 # Steady state: most findings are active; a tail is triaged/closed.
 _STATUS_WEIGHTS = [
@@ -38,21 +56,29 @@ _MITIGATED_AT = datetime.datetime(2026, 10, 1, tzinfo=datetime.UTC)
 
 
 def _ensure_scanners(engine: Engine) -> None:
+    """Upsert scanner_config with the ADR-0011 hash fields (updates placeholder rows too)."""
     factory = make_session_factory(engine)
     with session_scope(factory) as s:
-        existing = set(s.execute(select(ScannerConfig.scanner_key)).scalars())
+        existing = {c.scanner_key: c for c in s.execute(select(ScannerConfig)).scalars()}
         for key in SCANNERS:
-            if key not in existing:
+            algo, fields = _SCANNER_CONFIGS[key]
+            row = existing.get(key)
+            if row is None:
                 s.add(
                     ScannerConfig(
                         scanner_key=key,
                         display_name=key.title(),
-                        dedup_algorithm="hash_code",
-                        hash_fields=["title", "component_name", "component_version"],
-                        reimport_algorithm="hash_code",
-                        reimport_hash_fields=["title", "component_name", "component_version"],
+                        dedup_algorithm=algo,
+                        hash_fields=fields,
+                        reimport_algorithm=algo,
+                        reimport_hash_fields=fields,
                     )
                 )
+            else:
+                row.dedup_algorithm = algo
+                row.hash_fields = fields
+                row.reimport_algorithm = algo
+                row.reimport_hash_fields = fields
 
 
 def _build_hierarchy(engine: Engine, n_products: int) -> list[tuple[int, int, int]]:

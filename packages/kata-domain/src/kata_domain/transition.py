@@ -10,7 +10,12 @@ in here later.
 from __future__ import annotations
 
 import datetime
+from collections.abc import Sequence
 from typing import Protocol
+
+from sqlalchemy import insert, literal, select, update
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Session
 
 from .enums import ActorType, FindingStatus
 from .models import AuditLog, Finding
@@ -96,3 +101,72 @@ def transition(
     # TODO(Phase 6): recompute SLA when status leaves/returns to 'active'.
     # TODO(Phase 7): write the finding.status_changed outbox row in this same transaction.
     return audit
+
+
+def bulk_transition(
+    session: Session,
+    *,
+    finding_ids: Sequence[int],
+    from_status: FindingStatus,
+    to_status: FindingStatus,
+    actor_type: ActorType,
+    actor_id: str,
+    reason: str | None = None,
+    now: datetime.datetime | None = None,
+) -> list[int]:
+    """Set-based status change for many findings (reimport reactivate/close). ADR-0012.
+
+    The ONLY sanctioned bulk status path, alongside :func:`transition`. Performs one
+    ``UPDATE ... WHERE id = ANY AND status = from_status`` (the status guard makes it
+    idempotent and race-safe: a row already moved is skipped) and one set-based audit
+    ``INSERT ... SELECT`` over exactly the rows that changed. Returns the changed ids.
+
+    Raises :class:`InvalidTransition` if the single ``from → to`` edge is not permitted.
+    """
+    if not is_allowed(from_status, to_status):
+        raise InvalidTransition(
+            f"Cannot transition finding from '{from_status.value}' to '{to_status.value}'."
+        )
+    if not finding_ids:
+        return []
+
+    moment = now or datetime.datetime.now(tz=datetime.UTC)
+    values: dict[str, object] = {"status": to_status, "updated_at": moment}
+    # Keep mitigated_at consistent with the CHECK ((status='mitigated') = (mitigated_at NOT NULL)).
+    if to_status is S.MITIGATED:
+        values["mitigated_at"] = moment
+    elif from_status is S.MITIGATED:
+        values["mitigated_at"] = None
+
+    changed = list(
+        session.scalars(
+            update(Finding)
+            .where(Finding.id.in_(list(finding_ids)), Finding.status == from_status)
+            .values(**values)
+            .returning(Finding.id)
+        ).all()
+    )
+    if not changed:
+        return []
+
+    diff = {
+        "field": "status",
+        "from": from_status.value,
+        "to": to_status.value,
+        "reason": reason,
+    }
+    session.execute(
+        insert(AuditLog).from_select(
+            ["occurred_at", "actor_type", "actor_id", "entity", "entity_id", "action", "diff"],
+            select(
+                literal(moment),
+                literal(actor_type.value),
+                literal(actor_id),
+                literal("finding"),
+                Finding.id,
+                literal("status_changed"),
+                literal(diff, type_=JSONB),
+            ).where(Finding.id.in_(changed)),
+        )
+    )
+    return changed

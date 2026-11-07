@@ -378,6 +378,125 @@
         }
       }
     },
+    "/api/v1/reimport": {
+      "post": {
+        "summary": "Reimport Report",
+        "description": "Reimport a report into an existing Test, diffing against its findings (Phase 3, 3.7.4).\n\nUses the Test's own scanner. A mass-closure that looks like a truncated report pauses to\n``needs_confirmation`` (resolve via /reimport/{job_id}/confirm|reject).",
+        "operationId": "reimport_report_api_v1_reimport_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_reimport_report_api_v1_reimport_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReimportResultOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reimport/{job_id}/confirm": {
+      "post": {
+        "summary": "Confirm Reimport Decision",
+        "description": "Apply a paused mass closure after human review (ADR-0013).",
+        "operationId": "confirm_reimport_decision_api_v1_reimport__job_id__confirm_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReimportResultOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reimport/{job_id}/reject": {
+      "post": {
+        "summary": "Reject Reimport Decision",
+        "description": "Discard a paused mass closure: nothing closes (ADR-0013).",
+        "operationId": "reject_reimport_decision_api_v1_reimport__job_id__reject_post",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReimportResultOut"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/findings": {
       "get": {
         "summary": "List Findings",
@@ -827,6 +946,35 @@
         ],
         "title": "Body_import_report_api_v1_import_post"
       },
+      "Body_reimport_report_api_v1_reimport_post": {
+        "properties": {
+          "test_id": {
+            "type": "integer",
+            "title": "Test Id"
+          },
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          },
+          "close_old_findings": {
+            "type": "boolean",
+            "title": "Close Old Findings",
+            "default": true
+          },
+          "do_not_reactivate": {
+            "type": "boolean",
+            "title": "Do Not Reactivate",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "test_id",
+          "file"
+        ],
+        "title": "Body_reimport_report_api_v1_reimport_post"
+      },
       "EngagementIn": {
         "properties": {
           "name": {
@@ -1101,6 +1249,96 @@
         ],
         "title": "ProductTypeOut"
       },
+      "ReimportDecisionOut": {
+        "properties": {
+          "import_job_id": {
+            "type": "string",
+            "title": "Import Job Id"
+          },
+          "test_id": {
+            "type": "integer",
+            "title": "Test Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "active_before": {
+            "type": "integer",
+            "title": "Active Before"
+          },
+          "incoming_count": {
+            "type": "integer",
+            "title": "Incoming Count"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "close_candidate_count": {
+            "type": "integer",
+            "title": "Close Candidate Count",
+            "readOnly": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "import_job_id",
+          "test_id",
+          "status",
+          "active_before",
+          "incoming_count",
+          "created_at",
+          "close_candidate_count"
+        ],
+        "title": "ReimportDecisionOut",
+        "description": "A reimport paused by the mass-closure breaker, awaiting a human (ADR-0013)."
+      },
+      "ReimportResultOut": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "import_job_id": {
+            "type": "string",
+            "title": "Import Job Id"
+          },
+          "created": {
+            "type": "integer",
+            "title": "Created"
+          },
+          "reactivated": {
+            "type": "integer",
+            "title": "Reactivated"
+          },
+          "untouched": {
+            "type": "integer",
+            "title": "Untouched"
+          },
+          "closed": {
+            "type": "integer",
+            "title": "Closed"
+          },
+          "close_candidates": {
+            "type": "integer",
+            "title": "Close Candidates",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "import_job_id",
+          "created",
+          "reactivated",
+          "untouched",
+          "closed"
+        ],
+        "title": "ReimportResultOut",
+        "description": "Result of POST /reimport (Phase 3). ``status`` is 'completed' or 'needs_confirmation'."
+      },
       "Severity": {
         "type": "string",
         "enum": [
@@ -1144,6 +1382,14 @@
             },
             "type": "array",
             "title": "Imports",
+            "default": []
+          },
+          "pending_decisions": {
+            "items": {
+              "$ref": "#/components/schemas/ReimportDecisionOut"
+            },
+            "type": "array",
+            "title": "Pending Decisions",
             "default": []
           }
         },

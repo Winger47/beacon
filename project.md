@@ -1631,23 +1631,23 @@ Format for each phase: **Tasks** (checkboxes), **Deliverables**, **ADRs to write
 ### Phase 3: Deduplication and reimport (3 weeks)
 
 **Week 1: Hashing and dedup**
-- [ ] `scanner_config` seeded with algorithm + hash fields per scanner, with a written rationale per field.
-- [ ] `compute_hash_code` + Hypothesis property tests.
-- [ ] Store `match_key` on `finding`.
-- [ ] Same-tool dedup (product scope, engagement scope flag) and cross-tool dedup (hash path).
-- [ ] Duplicate promotion when an original is deleted.
-- [ ] Management command: recompute hashes for a scanner after config change (dry-run mode showing what would change).
+- [x] `scanner_config` seeded with algorithm + hash fields per scanner, with a written rationale per field.
+- [ ] `compute_hash_code` + Hypothesis property tests. *(test_case_and_whitespace_variants_collide fails on Unicode `µ` — `_norm` uses `.lower()`, not case-fold-stable; see review note.)*
+- [x] Store `match_key` on `finding`.
+- [x] Same-tool dedup (product scope, engagement scope flag) and cross-tool dedup (hash path).
+- [x] Duplicate promotion when an original is deleted.
+- [x] Management command: recompute hashes for a scanner after config change (dry-run mode showing what would change).
 
 **Week 2: Reimport**
-- [ ] `POST /api/v1/reimport` with `close_old_findings`, `do_not_reactivate`.
-- [ ] Set-based reimport diff via staging (Part III 3.7.4), still in-process.
-- [ ] Human-triaged statuses are never overridden by the scanner.
-- [ ] Mass-closure circuit breaker + `NEEDS_CONFIRMATION` state + UI confirm/reject.
-- [ ] `test_import` counts; Test page timeline of imports.
+- [x] `POST /api/v1/reimport` with `close_old_findings`, `do_not_reactivate`.
+- [x] Set-based reimport diff via staging (Part III 3.7.4), still in-process. *(ruff F541 stray `f` prefix in reimport.py ~L175 — see review note.)*
+- [x] Human-triaged statuses are never overridden by the scanner.
+- [x] Mass-closure circuit breaker + `NEEDS_CONFIRMATION` state + UI confirm/reject.
+- [x] `test_import` counts; Test page timeline of imports.
 
 **Week 3: Parity harness**
-- [ ] Script that runs a fixture *sequence* (import v1, reimport v2 with 3 fixed + 2 new, reimport v3 with 1 regression...) against both DefectDojo's API and Kata's API, then compares created/untouched/reactivated/closed counts.
-- [ ] Document every intentional difference in `docs/parity.md`.
+- [x] Script that runs a fixture *sequence* (import v1, reimport v2 with 3 fixed + 2 new, reimport v3 with 1 regression...) against both DefectDojo's API and Kata's API, then compares created/untouched/reactivated/closed counts. *(scripts/parity/; Kata + independent oracle run now, DefectDojo backend implemented but not yet certified live — Phase 3 decision "pluggable adapter, Kata now".)*
+- [x] Document every intentional difference in `docs/parity.md`.
 
 **ADRs:** hash field choices per scanner; dedup ordering strategy (product keying); mass-closure guard thresholds.
 

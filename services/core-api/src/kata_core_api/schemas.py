@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from kata_domain.enums import FindingStatus, Severity
 
@@ -73,12 +73,31 @@ class TestImportOut(ORMModel):
     created_at: datetime.datetime
 
 
+class ReimportDecisionOut(ORMModel):
+    """A reimport paused by the mass-closure breaker, awaiting a human (ADR-0013)."""
+
+    import_job_id: str
+    test_id: int
+    status: str
+    active_before: int
+    incoming_count: int
+    created_at: datetime.datetime
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def close_candidate_count(self) -> int:
+        return len(self.close_candidate_ids)
+
+    close_candidate_ids: list[int] = Field(default_factory=list, exclude=True)
+
+
 class TestDetailOut(ORMModel):
     id: int
     engagement_id: int
     scanner_key: str
     title: str | None = None
     imports: list[TestImportOut] = []
+    pending_decisions: list[ReimportDecisionOut] = []
 
 
 class ImportResultOut(BaseModel):
@@ -87,6 +106,18 @@ class ImportResultOut(BaseModel):
     test_id: int
     import_job_id: str
     created_count: int
+
+
+class ReimportResultOut(BaseModel):
+    """Result of POST /reimport (Phase 3). ``status`` is 'completed' or 'needs_confirmation'."""
+
+    status: str
+    import_job_id: str
+    created: int
+    reactivated: int
+    untouched: int
+    closed: int
+    close_candidates: int = 0
 
 
 # ---- findings ----

@@ -17,6 +17,7 @@ dev = [
     "pytest>=8.3.0",
     "jsonschema>=4.22",        # validate the Kata Generic v1 contract in tests
     "python-multipart>=0.0.9", # core-api import endpoint (multipart upload)
+    "hypothesis>=6.100",       # property tests for hash normalization (ADR-0011)
     # Workspace members, installed editable so `uv run pytest` can import them.
     "kata-domain",
     "kata-parsers",
@@ -88,11 +89,14 @@ testpaths = [
     "packages/kata-domain/tests",
     "packages/kata-parsers/tests",
     "services/core-api/tests",
+    "scripts/parity/tests",
 ]
 # src-layout packages: put their src dirs on sys.path for tests, independent of
-# editable-install mechanics. Services get proper installs later.
+# editable-install mechanics. Services get proper installs later. "." lets the parity
+# harness import as ``scripts.parity.*``.
 pythonpath = [
     "packages/kata-domain/src",
     "packages/kata-parsers/src",
     "services/core-api/src",
+    ".",
 ]

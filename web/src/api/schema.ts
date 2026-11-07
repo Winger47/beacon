@@ -130,6 +130,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reimport": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reimport Report
+         * @description Reimport a report into an existing Test, diffing against its findings (Phase 3, 3.7.4).
+         *
+         *     Uses the Test's own scanner. A mass-closure that looks like a truncated report pauses to
+         *     ``needs_confirmation`` (resolve via /reimport/{job_id}/confirm|reject).
+         */
+        post: operations["reimport_report_api_v1_reimport_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reimport/{job_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Reimport Decision
+         * @description Apply a paused mass closure after human review (ADR-0013).
+         */
+        post: operations["confirm_reimport_decision_api_v1_reimport__job_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reimport/{job_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject Reimport Decision
+         * @description Discard a paused mass closure: nothing closes (ADR-0013).
+         */
+        post: operations["reject_reimport_decision_api_v1_reimport__job_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/findings": {
         parameters: {
             query?: never;
@@ -275,6 +338,23 @@ export interface components {
             /** File */
             file: string;
         };
+        /** Body_reimport_report_api_v1_reimport_post */
+        Body_reimport_report_api_v1_reimport_post: {
+            /** Test Id */
+            test_id: number;
+            /** File */
+            file: string;
+            /**
+             * Close Old Findings
+             * @default true
+             */
+            close_old_findings: boolean;
+            /**
+             * Do Not Reactivate
+             * @default false
+             */
+            do_not_reactivate: boolean;
+        };
         /** EngagementIn */
         EngagementIn: {
             /** Name */
@@ -387,6 +467,52 @@ export interface components {
             created_at: string;
         };
         /**
+         * ReimportDecisionOut
+         * @description A reimport paused by the mass-closure breaker, awaiting a human (ADR-0013).
+         */
+        ReimportDecisionOut: {
+            /** Import Job Id */
+            import_job_id: string;
+            /** Test Id */
+            test_id: number;
+            /** Status */
+            status: string;
+            /** Active Before */
+            active_before: number;
+            /** Incoming Count */
+            incoming_count: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Close Candidate Count */
+            readonly close_candidate_count: number;
+        };
+        /**
+         * ReimportResultOut
+         * @description Result of POST /reimport (Phase 3). ``status`` is 'completed' or 'needs_confirmation'.
+         */
+        ReimportResultOut: {
+            /** Status */
+            status: string;
+            /** Import Job Id */
+            import_job_id: string;
+            /** Created */
+            created: number;
+            /** Reactivated */
+            reactivated: number;
+            /** Untouched */
+            untouched: number;
+            /** Closed */
+            closed: number;
+            /**
+             * Close Candidates
+             * @default 0
+             */
+            close_candidates: number;
+        };
+        /**
          * Severity
          * @description Finding severity. Labels match ``core.severity``.
          * @enum {string}
@@ -407,6 +533,11 @@ export interface components {
              * @default []
              */
             imports: components["schemas"]["TestImportOut"][];
+            /**
+             * Pending Decisions
+             * @default []
+             */
+            pending_decisions: components["schemas"]["ReimportDecisionOut"][];
         };
         /** TestImportOut */
         TestImportOut: {
@@ -767,6 +898,101 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportResultOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reimport_report_api_v1_reimport_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_reimport_report_api_v1_reimport_post"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReimportResultOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_reimport_decision_api_v1_reimport__job_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReimportResultOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_reimport_decision_api_v1_reimport__job_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                job_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReimportResultOut"];
                 };
             };
             /** @description Validation Error */
